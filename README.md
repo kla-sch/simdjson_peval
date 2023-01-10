@@ -87,8 +87,8 @@ features. It has been tested with the following compilers:
 ## Documentation
 
 The implementation is described in the
-[User Guide](https://github.com/kla-sch/vectorset/blob/main/doc/UserGuide.md).
-
+[User Guide](https://github.com/kla-sch/simdjson_peval/blob/main/doc/UserGuide.md).
+             
 A API documentation could be created by just calling `docygen` in
 folder `doc`.
 
