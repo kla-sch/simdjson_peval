@@ -17,7 +17,7 @@ Excample:
     using namespace simdjson_peval;
 
     // the json so evaluate
-    auto jsonData =
+    auto json_data =
     R"(
         [
             {
@@ -50,19 +50,19 @@ Excample:
         array_to_out_iter<simdjson::ondemand::document>(
             back_inserter(persons), &tmp_person,
             object(
-                member("id", number_value(tmp_person.id)),
-                member("name", string_value(tmp_person.name))
+                member("id", number_value(&tmp_person.id)),
+                member("name", string_value(&tmp_person.name))
             )
         );
 
     // parse document:
     simdjson::ondemand::parser parser;
-    auto padded_json = simdjson::padded_string(jsonData);
-    auto dataDoc = parser.iterate(padded_json);
+    auto padded_json = simdjson::padded_string(json_data);
+    auto data_documant = parser.iterate(padded_json);
 
     // use the prototype to store data into vector `persons`
     auto errors = error(true);
-    eval_person(dataDoc, &errors);
+    eval_person(data_documant, &errors);
 
     if (error) {
         std::cerr << "Error:\n" << errors.to_string() << '\n';
