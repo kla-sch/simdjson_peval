@@ -1,3 +1,30 @@
+# Executables
+tests/testSimdjsonPeval_c++17
+tests/testSimdjsonPeval_c++20
+benchmark/runBench
+examples/print_amazon_cellphones
+examples/print_tweets
+examples/students_and_teachers
+examples/sum_array
+
+# Workfiles
+tests/*.xml
+tests/*.json
+
+# Doxygen output
+doc/html/**
+doc/latex/**
+doc/rtf/**
+doc/man/**
+doc/xml/**
+doc/docbook/**
+
+# backup files
+*~
+*.bak
+
+#### githup standards:
+
 # Prerequisites
 *.d
 

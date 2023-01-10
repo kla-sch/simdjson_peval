@@ -1,0 +1,9 @@
+[submodule "simdjson"]
+	path = simdjson
+	url = https://github.com/simdjson/simdjson.git
+[submodule "tests/googletest"]
+	path = tests/googletest
+	url = https://github.com/google/googletest.git
+[submodule "benchmark/google_benchmark"]
+	path = benchmark/google_benchmark
+	url = https://github.com/google/benchmark.git
