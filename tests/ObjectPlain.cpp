@@ -147,19 +147,19 @@ ObjectPlainParam::cases = {
             {
                 // construct
 #ifdef trace_param_order_right_to_left
-                {"number_value(uint64_t*,bool*)", "start"},
+                {"number_value(uint64_t*)", "start"},
 #else
-                {"string_value(std::string_view*,bool*)", "start"},
+                {"string_value(std::string_view*)", "start"},
 #endif
                 {"value(ValuePtr,GetFn)", "start"},
                 {"member(std::string_view,ValueFn)", "start"},
-                {"string_value(std::string_view*,bool*)", "start"},
+                {"string_value(std::string_view*)", "start"},
                 {"value(ValuePtr,GetFn)", "start"},
                 {"member(std::string_view,ValueFn)", "start"},
 #ifdef trace_param_order_right_to_left
-                {"string_value(std::string_view*,bool*)", "start"},
+                {"string_value(std::string_view*)", "start"},
 #else
-                {"number_value(uint64_t*,bool*)", "start"},
+                {"number_value(uint64_t*)", "start"},
 #endif
                 {"value(ValuePtr,GetFn)", "start"},
                 {"member(std::string_view,ValueFn)", "start"},
@@ -173,7 +173,7 @@ ObjectPlainParam::cases = {
                 {    "member(std::string_view,ValueFn)", "eval_begin"},
                 {        "error::path_scope::path_scope(error*,std::string_view)", "add_member:id"},
                 {        "value(ValuePtr,GetFn)", "eval_begin"},
-                {            "number_value(uint64_t*,bool*)", "start:get_value"},
+                {            "number_value(uint64_t*)", "start:get_value"},
                 {        "value(ValuePtr,GetFn)", "eval_end"},
                 {    "member(std::string_view,ValueFn)", "eval_end"},
                 {    "error::path_scope::~path_scope()", "delete"},
@@ -182,7 +182,7 @@ ObjectPlainParam::cases = {
                 {        "member(std::string_view,ValueFn)", "eval_begin"},
                 {            "error::path_scope::path_scope(error*,std::string_view)", "add_member:name"},
                 {            "value(ValuePtr,GetFn)", "eval_begin"},
-                {                "string_value(std::string_view*,bool*)", "start:get_value"},
+                {                "string_value(std::string_view*)", "start:get_value"},
                 {            "value(ValuePtr,GetFn)", "eval_end"},
                 {        "member(std::string_view,ValueFn)", "eval_end"},
                 {        "error::path_scope::~path_scope()", "delete"},
@@ -191,7 +191,7 @@ ObjectPlainParam::cases = {
                 {            "member(std::string_view,ValueFn)", "eval_begin"},
                 {                "error::path_scope::path_scope(error*,std::string_view)", "add_member:description"},
                 {                "value(ValuePtr,GetFn)", "eval_begin"},
-                {                    "string_value(std::string_view*,bool*)", "start:get_value"},
+                {                    "string_value(std::string_view*)", "start:get_value"},
                 {                "value(ValuePtr,GetFn)", "eval_end"},
                 {            "member(std::string_view,ValueFn)", "eval_end"},
                 {            "error::path_scope::~path_scope()", "delete"},
@@ -206,19 +206,19 @@ ObjectPlainParam::cases = {
             {
                 // construct
 #ifdef trace_param_order_right_to_left
-                {"number_value(uint64_t*,bool*)", "start"},
+                {"number_value(uint64_t*)", "start"},
 #else
-                {"string_value(std::string_view*,bool*)", "start"},
+                {"string_value(std::string_view*)", "start"},
 #endif
                 {"value(ValuePtr,GetFn)", "start"},
                 {"member(std::string_view,ValueFn)", "start"},
-                {"string_value(std::string_view*,bool*)", "start"},
+                {"string_value(std::string_view*)", "start"},
                 {"value(ValuePtr,GetFn)", "start"},
                 {"member(std::string_view,ValueFn)", "start"},
 #ifdef trace_param_order_right_to_left
-                {"string_value(std::string_view*,bool*)", "start"},
+                {"string_value(std::string_view*)", "start"},
 #else
-                {"number_value(uint64_t*,bool*)", "start"},
+                {"number_value(uint64_t*)", "start"},
 #endif
                 {"value(ValuePtr,GetFn)", "start"},
                 {"member(std::string_view,ValueFn)", "start"},
@@ -236,7 +236,7 @@ ObjectPlainParam::cases = {
                 {        "member(std::string_view,ValueFn)", "eval_begin"},
                 {            "error::path_scope::path_scope(error*,std::string_view)", "add_member:id"},
                 {            "value(ValuePtr,GetFn)", "eval_begin"},
-                {                "number_value(uint64_t*,bool*)", "start:get_value"},
+                {                "number_value(uint64_t*)", "start:get_value"},
                 {            "value(ValuePtr,GetFn)", "eval_end"},
                 {        "member(std::string_view,ValueFn)", "eval_end"},
                 {        "error::path_scope::~path_scope()", "delete"},
@@ -245,7 +245,7 @@ ObjectPlainParam::cases = {
                 {            "member(std::string_view,ValueFn)", "eval_begin"},
                 {                "error::path_scope::path_scope(error*,std::string_view)", "add_member:name"},
                 {                "value(ValuePtr,GetFn)", "eval_begin"},
-                {                    "string_value(std::string_view*,bool*)", "start:get_value"},
+                {                    "string_value(std::string_view*)", "start:get_value"},
                 {                "value(ValuePtr,GetFn)", "eval_end"},
                 {            "member(std::string_view,ValueFn)", "eval_end"},
                 {            "error::path_scope::~path_scope()", "delete"},
@@ -254,7 +254,7 @@ ObjectPlainParam::cases = {
                 {                "member(std::string_view,ValueFn)", "eval_begin"},
                 {                    "error::path_scope::path_scope(error*,std::string_view)", "add_member:description"},
                 {                    "value(ValuePtr,GetFn)", "eval_begin"},
-                {                        "string_value(std::string_view*,bool*)", "start:get_value"},
+                {                        "string_value(std::string_view*)", "start:get_value"},
                 {                    "value(ValuePtr,GetFn)", "eval_end"},
                 {                "member(std::string_view,ValueFn)", "eval_end"},
                 {                "error::path_scope::~path_scope()", "delete"},
@@ -270,9 +270,9 @@ ObjectPlainParam::cases = {
             {
                 // construct
 #ifdef trace_param_order_right_to_left
-                {"number_value(uint64_t*,bool*)", "start"},
+                {"number_value(uint64_t*)", "start"},
 #else
-                {"string_value(std::string_view*,bool*)", "start"},
+                {"string_value(std::string_view*)", "start"},
 #endif
                 {"value(ValuePtr,GetFn)", "start"},
 #ifdef trace_param_order_right_to_left
@@ -280,13 +280,13 @@ ObjectPlainParam::cases = {
 #else
                 {"member(std::string_view,ValueFn,bool*)", "start"},
 #endif
-                {"string_value(std::string_view*,bool*)", "start"},
+                {"string_value(std::string_view*)", "start"},
                 {"value(ValuePtr,GetFn)", "start"},
                 {"member(std::string_view,ValueFn,bool*)", "start"},
 #ifdef trace_param_order_right_to_left
-                {"string_value(std::string_view*,bool*)", "start"},
+                {"string_value(std::string_view*)", "start"},
 #else
-                {"number_value(uint64_t*,bool*)", "start"},
+                {"number_value(uint64_t*)", "start"},
 #endif
                 {"value(ValuePtr,GetFn)", "start"},
 #ifdef trace_param_order_right_to_left
@@ -304,7 +304,7 @@ ObjectPlainParam::cases = {
                 {    "member(std::string_view,ValueFn)", "eval_begin"},
                 {        "error::path_scope::path_scope(error*,std::string_view)", "add_member:id"},
                 {        "value(ValuePtr,GetFn)", "eval_begin"},
-                {            "number_value(uint64_t*,bool*)", "start:get_value"},
+                {            "number_value(uint64_t*)", "start:get_value"},
                 {        "value(ValuePtr,GetFn)", "eval_end"},
                 {    "member(std::string_view,ValueFn)", "eval_end"},
                 {    "error::path_scope::~path_scope()", "delete"},
@@ -313,7 +313,7 @@ ObjectPlainParam::cases = {
                 {        "member(std::string_view,ValueFn,bool*)", "eval_begin"},
                 {            "error::path_scope::path_scope(error*,std::string_view)", "add_member:name"},
                 {            "value(ValuePtr,GetFn)", "eval_begin"},
-                {                "string_value(std::string_view*,bool*)", "start:get_value"},
+                {                "string_value(std::string_view*)", "start:get_value"},
                 {            "value(ValuePtr,GetFn)", "eval_end"},
                 {        "member(std::string_view,ValueFn,bool*)", "eval_end"},
                 {        "error::path_scope::~path_scope()", "delete"},
@@ -322,7 +322,7 @@ ObjectPlainParam::cases = {
                 {            "member(std::string_view,ValueFn,bool*)", "eval_begin"},
                 {                "error::path_scope::path_scope(error*,std::string_view)", "add_member:description"},
                 {                "value(ValuePtr,GetFn)", "eval_begin"},
-                {                    "string_value(std::string_view*,bool*)", "start:get_value"},
+                {                    "string_value(std::string_view*)", "start:get_value"},
                 {                "value(ValuePtr,GetFn)", "eval_end"},
                 {            "member(std::string_view,ValueFn,bool*)", "eval_end"},
                 {            "error::path_scope::~path_scope()", "delete"},
@@ -336,7 +336,7 @@ ObjectPlainParam::cases = {
             {42, "", false, "", false},
             {
                 // construct
-                {"number_value(uint64_t*,bool*)", "start"},
+                {"number_value(uint64_t*)", "start"},
                 {"value(ValuePtr,GetFn)", "start"},
                 {"member(std::string_view,ValueFn)", "start"},
                 {"object(MemberFn)", "start"},
@@ -347,7 +347,7 @@ ObjectPlainParam::cases = {
                 {    "member(std::string_view,ValueFn)", "eval_begin"},
                 {        "error::path_scope::path_scope(error*,std::string_view)", "add_member:id"},
                 {        "value(ValuePtr,GetFn)", "eval_begin"},
-                {            "number_value(uint64_t*,bool*)", "start:get_value"},
+                {            "number_value(uint64_t*)", "start:get_value"},
                 {        "value(ValuePtr,GetFn)", "eval_end"},
                 {    "member(std::string_view,ValueFn)", "eval_end"},
                 {    "error::path_scope::~path_scope()", "delete"},
@@ -367,19 +367,19 @@ ObjectPlainParam::cases = {
             {
                 // construct
 #ifdef trace_param_order_right_to_left
-                {"number_value(uint64_t*,bool*)", "start"},
+                {"number_value(uint64_t*)", "start"},
 #else
-                {"string_value(std::string_view*,bool*)", "start"},
+                {"string_value(std::string_view*)", "start"},
 #endif
                 {"value(ValuePtr,GetFn)", "start"},
                 {"member(std::string_view,ValueFn)", "start"},
-                {"string_value(std::string_view*,bool*)", "start"},
+                {"string_value(std::string_view*)", "start"},
                 {"value(ValuePtr,GetFn)", "start"},
                 {"member(std::string_view,ValueFn)", "start"},
 #ifdef trace_param_order_right_to_left
-                {"string_value(std::string_view*,bool*)", "start"},
+                {"string_value(std::string_view*)", "start"},
 #else
-                {"number_value(uint64_t*,bool*)", "start"},
+                {"number_value(uint64_t*)", "start"},
 #endif
                 {"value(ValuePtr,GetFn)", "start"},
                 {"member(std::string_view,ValueFn)", "start"},
@@ -393,7 +393,7 @@ ObjectPlainParam::cases = {
                 {    "member(std::string_view,ValueFn)", "eval_begin"},
                 {        "error::path_scope::path_scope(error*,std::string_view)", "add_member:id"},
                 {        "value(ValuePtr,GetFn)", "eval_begin"},
-                {            "number_value(uint64_t*,bool*)", "start:get_value"},
+                {            "number_value(uint64_t*)", "start:get_value"},
                 {        "value(ValuePtr,GetFn)", "eval_end"},
                 {    "member(std::string_view,ValueFn)", "eval_end"},
                 {    "error::path_scope::~path_scope()", "delete"},
@@ -424,19 +424,19 @@ ObjectPlainParam::cases = {
             {
                 // construct
 #ifdef trace_param_order_right_to_left
-                {"number_value(uint64_t*,bool*)", "start"},
+                {"number_value(uint64_t*)", "start"},
 #else
-                {"string_value(std::string_view*,bool*)", "start"},
+                {"string_value(std::string_view*)", "start"},
 #endif
                 {"value(ValuePtr,GetFn)", "start"},
                 {"member(std::string_view,ValueFn)", "start"},
-                {"string_value(std::string_view*,bool*)", "start"},
+                {"string_value(std::string_view*)", "start"},
                 {"value(ValuePtr,GetFn)", "start"},
                 {"member(std::string_view,ValueFn)", "start"},
 #ifdef trace_param_order_right_to_left
-                {"string_value(std::string_view*,bool*)", "start"},
+                {"string_value(std::string_view*)", "start"},
 #else
-                {"number_value(uint64_t*,bool*)", "start"},
+                {"number_value(uint64_t*)", "start"},
 #endif
                 {"value(ValuePtr,GetFn)", "start"},
                 {"member(std::string_view,ValueFn)", "start"},
@@ -454,7 +454,7 @@ ObjectPlainParam::cases = {
                 {        "member(std::string_view,ValueFn)", "eval_begin"},
                 {            "error::path_scope::path_scope(error*,std::string_view)", "add_member:id"},
                 {            "value(ValuePtr,GetFn)", "eval_begin"},
-                {                "number_value(uint64_t*,bool*)", "start:get_value"},
+                {                "number_value(uint64_t*)", "start:get_value"},
                 {            "value(ValuePtr,GetFn)", "eval_end"},
                 {        "member(std::string_view,ValueFn)", "eval_end"},
                 {        "error::path_scope::~path_scope()", "delete"},
@@ -486,9 +486,9 @@ ObjectPlainParam::cases = {
             {
                 // construct
 #ifdef trace_param_order_right_to_left
-                {"number_value(uint64_t*,bool*)", "start"},
+                {"number_value(uint64_t*)", "start"},
 #else
-                {"string_value(std::string_view*,bool*)", "start"},
+                {"string_value(std::string_view*)", "start"},
 #endif
                 {"value(ValuePtr,GetFn)", "start"},
 #ifdef trace_param_order_right_to_left
@@ -496,13 +496,13 @@ ObjectPlainParam::cases = {
 #else
                 {"member(std::string_view,ValueFn,bool*)", "start"},
 #endif
-                {"string_value(std::string_view*,bool*)", "start"},
+                {"string_value(std::string_view*)", "start"},
                 {"value(ValuePtr,GetFn)", "start"},
                 {"member(std::string_view,ValueFn,bool*)", "start"},
 #ifdef trace_param_order_right_to_left
-                {"string_value(std::string_view*,bool*)", "start"},
+                {"string_value(std::string_view*)", "start"},
 #else
-                {"number_value(uint64_t*,bool*)", "start"},
+                {"number_value(uint64_t*)", "start"},
 #endif
                 {"value(ValuePtr,GetFn)", "start"},
 #ifdef trace_param_order_right_to_left
@@ -520,7 +520,7 @@ ObjectPlainParam::cases = {
                 {    "member(std::string_view,ValueFn)", "eval_begin"},
                 {        "error::path_scope::path_scope(error*,std::string_view)", "add_member:id"},
                 {        "value(ValuePtr,GetFn)", "eval_begin"},
-                {            "number_value(uint64_t*,bool*)", "start:get_value"},
+                {            "number_value(uint64_t*)", "start:get_value"},
                 {        "value(ValuePtr,GetFn)", "eval_end"},
                 {    "member(std::string_view,ValueFn)", "eval_end"},
                 {    "error::path_scope::~path_scope()", "delete"},
@@ -548,7 +548,7 @@ ObjectPlainParam::cases = {
             {42, "", false, "", false},
             {
                 // construct
-                {"number_value(uint64_t*,bool*)", "start"},
+                {"number_value(uint64_t*)", "start"},
                 {"value(ValuePtr,GetFn)", "start"},
                 {"member(std::string_view,ValueFn)", "start"},
                 {"object(MemberFn)", "start"},
@@ -559,7 +559,7 @@ ObjectPlainParam::cases = {
                 {    "member(std::string_view,ValueFn)", "eval_begin"},
                 {        "error::path_scope::path_scope(error*,std::string_view)", "add_member:id"},
                 {        "value(ValuePtr,GetFn)", "eval_begin"},
-                {            "number_value(uint64_t*,bool*)", "start:get_value"},
+                {            "number_value(uint64_t*)", "start:get_value"},
                 {        "value(ValuePtr,GetFn)", "eval_end"},
                 {    "member(std::string_view,ValueFn)", "eval_end"},
                 {    "error::path_scope::~path_scope()", "delete"},
@@ -576,19 +576,19 @@ ObjectPlainParam::cases = {
             {
                 // construct
 #ifdef trace_param_order_right_to_left
-                {"number_value(uint64_t*,bool*)", "start"},
+                {"number_value(uint64_t*)", "start"},
 #else
-                {"string_value(std::string_view*,bool*)", "start"},
+                {"string_value(std::string_view*)", "start"},
 #endif
                 {"value(ValuePtr,GetFn)", "start"},
                 {"member(std::string_view,ValueFn)", "start"},
-                {"string_value(std::string_view*,bool*)", "start"},
+                {"string_value(std::string_view*)", "start"},
                 {"value(ValuePtr,GetFn)", "start"},
                 {"member(std::string_view,ValueFn)", "start"},
 #ifdef trace_param_order_right_to_left
-                {"string_value(std::string_view*,bool*)", "start"},
+                {"string_value(std::string_view*)", "start"},
 #else
-                {"number_value(uint64_t*,bool*)", "start"},
+                {"number_value(uint64_t*)", "start"},
 #endif
                 {"value(ValuePtr,GetFn)", "start"},
                 {"member(std::string_view,ValueFn)", "start"},
@@ -610,19 +610,19 @@ ObjectPlainParam::cases = {
             {
                 // construct
 #ifdef trace_param_order_right_to_left
-                {"number_value(uint64_t*,bool*)", "start"},
+                {"number_value(uint64_t*)", "start"},
 #else
-                {"string_value(std::string_view*,bool*)", "start"},
+                {"string_value(std::string_view*)", "start"},
 #endif
                 {"value(ValuePtr,GetFn)", "start"},
                 {"member(std::string_view,ValueFn)", "start"},
-                {"string_value(std::string_view*,bool*)", "start"},
+                {"string_value(std::string_view*)", "start"},
                 {"value(ValuePtr,GetFn)", "start"},
                 {"member(std::string_view,ValueFn)", "start"},
 #ifdef trace_param_order_right_to_left
-                {"string_value(std::string_view*,bool*)", "start"},
+                {"string_value(std::string_view*)", "start"},
 #else
-                {"number_value(uint64_t*,bool*)", "start"},
+                {"number_value(uint64_t*)", "start"},
 #endif
                 {"value(ValuePtr,GetFn)", "start"},
                 {"member(std::string_view,ValueFn)", "start"},
@@ -645,9 +645,9 @@ ObjectPlainParam::cases = {
             {
                 // construct
 #ifdef trace_param_order_right_to_left
-                {"number_value(uint64_t*,bool*)", "start"},
+                {"number_value(uint64_t*)", "start"},
 #else
-                {"string_value(std::string_view*,bool*)", "start"},
+                {"string_value(std::string_view*)", "start"},
 #endif
                 {"value(ValuePtr,GetFn)", "start"},
 #ifdef trace_param_order_right_to_left
@@ -655,13 +655,13 @@ ObjectPlainParam::cases = {
 #else
                 {"member(std::string_view,ValueFn,bool*)", "start"},
 #endif
-                {"string_value(std::string_view*,bool*)", "start"},
+                {"string_value(std::string_view*)", "start"},
                 {"value(ValuePtr,GetFn)", "start"},
                 {"member(std::string_view,ValueFn,bool*)", "start"},
 #ifdef trace_param_order_right_to_left
-                {"string_value(std::string_view*,bool*)", "start"},
+                {"string_value(std::string_view*)", "start"},
 #else
-                {"number_value(uint64_t*,bool*)", "start"},
+                {"number_value(uint64_t*)", "start"},
 #endif
                 {"value(ValuePtr,GetFn)", "start"},
 #ifdef trace_param_order_right_to_left
@@ -686,7 +686,7 @@ ObjectPlainParam::cases = {
             {},
             {
                 // construct
-                {"number_value(uint64_t*,bool*)", "start"},
+                {"number_value(uint64_t*)", "start"},
                 {"value(ValuePtr,GetFn)", "start"},
                 {"member(std::string_view,ValueFn)", "start"},
                 {"object(MemberFn)", "start"},

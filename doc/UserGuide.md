@@ -26,10 +26,12 @@ function is called, you can see that the content of the parameter can
 be changed.  This policy is different from `simdjson`, which uses
 non-const references as function argument.
 
-The functions of `simdjson_peval.h` generate a function of type
-`eval_fn_type<Type>` each. This is a function which expects a
-`simdjson::simdjson_result<Type>` type aus first and a pointer to an
-error container as secound argument. The function has no return value.
+The functions of `simdjson_peval.h` generate a lambda function that
+takes a `simdjson::simdjson_result<Type>` as the first argument
+and a pointer to an error container as the second argument. The
+function has no return value.
+
+The type `eval_fn_type<type>` can store these generated functions.
 
 The default type is always `simdjson::ondemand::value`. If you want to
 evaluate a different type, this must be specified in the functions as

@@ -91,11 +91,11 @@ ValueStringToInt64Param::cases = {
         "positiveInt", R"("10")", 10, false,
         { // Plain
             {
-                {"string_value(int64_t*,bool*)", "start"},
+                {"string_value(int64_t*)", "start"},
                 {"value(ValuePtr,GetFn)", "start"},
 
                 {"value(ValuePtr,GetFn)", "eval_begin"},
-                {"string_value(int64_t*,bool*)", "start:get_value"},
+                {"string_value(int64_t*)", "start:get_value"},
                 {"value(ValuePtr,GetFn)", "eval_end"}
             }, {
             }
@@ -128,11 +128,11 @@ ValueStringToInt64Param::cases = {
         "negativeInt", R"("-10")", -10, false,
         { // Plain
             {
-                {"string_value(int64_t*,bool*)", "start"},
+                {"string_value(int64_t*)", "start"},
                 {"value(ValuePtr,GetFn)", "start"},
 
                 {"value(ValuePtr,GetFn)", "eval_begin"},
-                {"string_value(int64_t*,bool*)", "start:get_value"},
+                {"string_value(int64_t*)", "start:get_value"},
                 {"value(ValuePtr,GetFn)", "eval_end"}
             }, {
             }
@@ -165,12 +165,12 @@ ValueStringToInt64Param::cases = {
         "double", R"("10.5")", 0, false,
         { // Plain
             {
-                {"string_value(int64_t*,bool*)", "start"},
+                {"string_value(int64_t*)", "start"},
                 {"value(ValuePtr,GetFn)", "start"},
 
                 {"value(ValuePtr,GetFn)", "eval_begin"},
-                {"string_value(int64_t*,bool*)", "start:get_value"},
-                {"string_value(int64_t*,bool*)", "error:9"},
+                {"string_value(int64_t*)", "start:get_value"},
+                {"string_value(int64_t*)", "error:9"},
                 {"value(ValuePtr,GetFn)", "eval_end"}
             }, {
                 { simdjson::NUMBER_ERROR, "<root>" }
@@ -208,12 +208,12 @@ ValueStringToInt64Param::cases = {
         "null", R"(null)", 0, true,
         { // Plain
             {
-                {"string_value(int64_t*,bool*)", "start"},
+                {"string_value(int64_t*)", "start"},
                 {"value(ValuePtr,GetFn)", "start"},
 
                 {"value(ValuePtr,GetFn)", "eval_begin"},
-                {"string_value(int64_t*,bool*)", "start:get_value"},
-                {"string_value(int64_t*,bool*)", "error:16"},
+                {"string_value(int64_t*)", "start:get_value"},
+                {"string_value(int64_t*)", "error:16"},
                 {"value(ValuePtr,GetFn)", "eval_end"}
             }, {
                 { simdjson::INCORRECT_TYPE, "<root>" }
@@ -247,12 +247,12 @@ ValueStringToInt64Param::cases = {
         "text", R"("text")", 0, false,
         { // Plain
             {
-                {"string_value(int64_t*,bool*)", "start"},
+                {"string_value(int64_t*)", "start"},
                 {"value(ValuePtr,GetFn)", "start"},
 
                 {"value(ValuePtr,GetFn)", "eval_begin"},
-                {"string_value(int64_t*,bool*)", "start:get_value"},
-                {"string_value(int64_t*,bool*)", "error:16"},
+                {"string_value(int64_t*)", "start:get_value"},
+                {"string_value(int64_t*)", "error:16"},
                 {"value(ValuePtr,GetFn)", "eval_end"}
             }, {
                 { simdjson::INCORRECT_TYPE, "<root>" }

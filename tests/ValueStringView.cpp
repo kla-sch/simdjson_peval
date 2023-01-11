@@ -91,12 +91,12 @@ ValueStringViewParam::cases = {
         { // Plain
             {
                 // construct
-                {"string_value(std::string_view*,bool*)", "start"},
+                {"string_value(std::string_view*)", "start"},
                 {"value(ValuePtr,GetFn)", "start"},
 
                 // evaluate
                 {"value(ValuePtr,GetFn)", "eval_begin"},
-                {"string_value(std::string_view*,bool*)", "start:get_value"},
+                {"string_value(std::string_view*)", "start:get_value"},
                 {"value(ValuePtr,GetFn)", "eval_end"}
             }, {
             }
@@ -130,12 +130,12 @@ ValueStringViewParam::cases = {
         "null", R"(null)", "", true,
         { // Plain
             {
-                {"string_value(std::string_view*,bool*)", "start"},
+                {"string_value(std::string_view*)", "start"},
                 {"value(ValuePtr,GetFn)", "start"},
 
                 {"value(ValuePtr,GetFn)", "eval_begin"},
-                {"string_value(std::string_view*,bool*)", "start:get_value"},
-                {"string_value(std::string_view*,bool*)", "error:16"},
+                {"string_value(std::string_view*)", "start:get_value"},
+                {"string_value(std::string_view*)", "error:16"},
                 {"value(ValuePtr,GetFn)", "eval_end"}
             }, {
                 { simdjson::INCORRECT_TYPE, "<root>" }
@@ -169,12 +169,12 @@ ValueStringViewParam::cases = {
         "int", R"(10)", "", false,
         { // Plain
             {
-                {"string_value(std::string_view*,bool*)", "start"},
+                {"string_value(std::string_view*)", "start"},
                 {"value(ValuePtr,GetFn)", "start"},
 
                 {"value(ValuePtr,GetFn)", "eval_begin"},
-                {"string_value(std::string_view*,bool*)", "start:get_value"},
-                {"string_value(std::string_view*,bool*)", "error:16"},
+                {"string_value(std::string_view*)", "start:get_value"},
+                {"string_value(std::string_view*)", "error:16"},
                 {"value(ValuePtr,GetFn)", "eval_end"}
             }, {
                 { simdjson::INCORRECT_TYPE, "<root>" }

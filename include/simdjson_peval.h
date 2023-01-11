@@ -419,17 +419,6 @@ check_null(SJValue &sj_result, Optional *opt_value) {
 }
 
 /**
- * Function that evaluates elements of an array by array iterator.
- * @private
- */
-using eval_array_fn_type =
-    std::function<
-        void (simdjson::simdjson_result<simdjson::ondemand::array> *,
-              simdjson::simdjson_result<simdjson::ondemand::array_iterator>*,
-              size_t, error *)
-    >;
-
-/**
  * Create function to evaluate array element by array iterator.
  *
  * @private
@@ -439,16 +428,17 @@ using eval_array_fn_type =
  * @return Function that evaluates a single array element.
  */
 template<typename ElementFn>
-inline eval_array_fn_type
+inline auto
 array(ElementFn element_fn) {
+    using ArrayIter =
+        simdjson::simdjson_result<simdjson::ondemand::array_iterator>;
+
     _SIMDJSON_PEVAL_TRACE_SET_NAME("internal::array(ElementFn)");
     _SIMDJSON_PEVAL_TRACE("start");
 
     return
         [element_fn]
-        (simdjson::simdjson_result<simdjson::ondemand::array> *sj_array,
-         simdjson::simdjson_result<simdjson::ondemand::array_iterator>
-             *sj_array_iter,
+        (ArrayIter *sj_array_iter, ArrayIter *sj_array_end,
          size_t sj_array_idx,
          error *err)
         mutable
@@ -457,7 +447,7 @@ array(ElementFn element_fn) {
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
             error::path_scope array_idx_scope(err, sj_array_idx);
-            if (*sj_array_iter == sj_array->value().end()) {
+            if (*sj_array_iter == *sj_array_end) {
                 const auto code = simdjson::INDEX_OUT_OF_BOUNDS;
                 _SIMDJSON_PEVAL_TRACE_ERROR(code);
                 err->add(code);
@@ -484,8 +474,11 @@ array(ElementFn element_fn) {
 template<
     typename ElementFn,
     typename ...MoreElementFn>
-inline eval_array_fn_type
+inline auto
 array(ElementFn element_fn, MoreElementFn ...more_element_fn) {
+    using ArrayIter =
+        simdjson::simdjson_result<simdjson::ondemand::array_iterator>;
+
     _SIMDJSON_PEVAL_TRACE_SET_NAME(
         "internal::array(ElementFn,MoreElementFn...)");
     _SIMDJSON_PEVAL_TRACE("start");
@@ -494,11 +487,10 @@ array(ElementFn element_fn, MoreElementFn ...more_element_fn) {
         internal::array(
             std::forward<MoreElementFn>(more_element_fn)...);
 
+
     return
         [element_fn, eval_more_fn]
-        (simdjson::simdjson_result<simdjson::ondemand::array> *sj_array,
-         simdjson::simdjson_result<simdjson::ondemand::array_iterator>
-             *sj_array_iter,
+        (ArrayIter *sj_array_iter, ArrayIter *sj_array_end,
          size_t sj_array_idx,
          error *err)
         mutable
@@ -509,7 +501,7 @@ array(ElementFn element_fn, MoreElementFn ...more_element_fn) {
             {
                 error::path_scope array_idx_scope(err, sj_array_idx);
 
-                if (*sj_array_iter == sj_array->value().end()) {
+                if (*sj_array_iter == *sj_array_end) {
                     const auto code = simdjson::INDEX_OUT_OF_BOUNDS;
                     _SIMDJSON_PEVAL_TRACE_ERROR(code);
                     err->add(code);
@@ -521,7 +513,7 @@ array(ElementFn element_fn, MoreElementFn ...more_element_fn) {
                 }
             }
 
-            eval_more_fn(sj_array, sj_array_iter, sj_array_idx+1, err);
+            eval_more_fn(sj_array_iter, sj_array_end, sj_array_idx+1, err);
 
             _SIMDJSON_PEVAL_TRACE_EVAL_END();
         };
@@ -547,7 +539,6 @@ using eval_fn_type =
     std::function<
         void (simdjson::simdjson_result<SJValue> &sj_result, error *err)>;
 
-
 ///
 /// @name Evaluate JSON scalar values.
 //  /////////////////////////////////////////////////////////////////////
@@ -571,15 +562,16 @@ using eval_fn_type =
 template<typename SJValue = simdjson::ondemand::value,
          typename ValuePtr,
          typename GetFn>
-inline eval_fn_type<SJValue>
-value(ValuePtr val_ptr, GetFn get_fn) {
+inline auto
+value(ValuePtr *val_ptr, GetFn get_fn) {
+    using ResultType = simdjson::simdjson_result<SJValue>;
     _SIMDJSON_PEVAL_TRACE_SET_NAME("value(ValuePtr,GetFn)");
     _SIMDJSON_PEVAL_TRACE("start");
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
 
     return
         [val_ptr, get_fn]
-        (simdjson::simdjson_result<SJValue> &sj_result, error *err) mutable {
+        (ResultType &sj_result, error *err) mutable {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -609,15 +601,17 @@ value(ValuePtr val_ptr, GetFn get_fn) {
 template<typename SJValue = simdjson::ondemand::value,
          typename ValuePtr,
          typename GetFn>
-inline eval_fn_type<SJValue>
+inline auto
 value(ValuePtr val_ptr, GetFn get_fn, bool *is_null) {
+    using ResultType = simdjson::simdjson_result<SJValue>;
+
     _SIMDJSON_PEVAL_TRACE_SET_NAME("value(ValuePtr,GetFn,bool*)");
     _SIMDJSON_PEVAL_TRACE("start");
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
 
     return
         [val_ptr, is_null, get_fn]
-        (simdjson::simdjson_result<SJValue> &sj_result, error *err) mutable {
+        (ResultType &sj_result, error *err) mutable {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -653,15 +647,17 @@ value(ValuePtr val_ptr, GetFn get_fn, bool *is_null) {
 template<typename SJValue = simdjson::ondemand::value,
          typename Value,
          typename GetFn>
-inline eval_fn_type<SJValue>
+inline auto
 value(std::optional<Value> *opt_ptr, GetFn get_fn) {
+    using ResultType = simdjson::simdjson_result<SJValue>;
+
     _SIMDJSON_PEVAL_TRACE_SET_NAME("value(std::optional<Value>*,GetFn)");
     _SIMDJSON_PEVAL_TRACE("start");
     _SIMDJSON_PEVAL_ASSERT(opt_ptr != nullptr);
 
     return
         [opt_ptr, get_fn]
-        (simdjson::simdjson_result<SJValue> &sj_result, error *err) {
+        (ResultType &sj_result, error *err) {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -695,14 +691,16 @@ value(std::optional<Value> *opt_ptr, GetFn get_fn) {
  */
 template<typename SJValue = simdjson::ondemand::value,
          typename GetFn>
-inline eval_fn_type<SJValue>
+inline auto
 value(GetFn get_fn) {
+    using ResultType = simdjson::simdjson_result<SJValue>;
+
     _SIMDJSON_PEVAL_TRACE_SET_NAME("value(GetFn)");
     _SIMDJSON_PEVAL_TRACE("start");
 
     return
         [get_fn]
-        (simdjson::simdjson_result<SJValue> &sj_result, error *err) {
+        (ResultType &sj_result, error *err) {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -723,7 +721,7 @@ value(GetFn get_fn) {
  * @return Function to evaluate JSON value.
  */
 template<typename SJValue = simdjson::ondemand::value>
-inline eval_fn_type<SJValue>
+inline auto
 value(simdjson::simdjson_result<simdjson::ondemand::value> *val_ptr)
 {
     _SIMDJSON_PEVAL_TRACE_SET_NAME(
@@ -764,14 +762,43 @@ value(simdjson::simdjson_result<simdjson::ondemand::value> *val_ptr)
  * `std::string_view`.
  *
  * @param val_ptr Pointer to location to store the value.
+ *
+ * @return Function to evaluate JSON value.
+ */
+template<typename SJValue = simdjson::ondemand::value>
+inline auto
+string_value(std::string_view *val_ptr) {
+    _SIMDJSON_PEVAL_TRACE_SET_NAME("string_value(std::string_view*)");
+    _SIMDJSON_PEVAL_TRACE("start");
+    _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
+
+    auto get_value =
+        [](auto *sj_result, auto *val_ptr, auto *err) {
+            _SIMDJSON_PEVAL_TRACE("start:get_value");
+            const auto code = sj_result->value().get_string().get(*val_ptr);
+            if (code) {
+                _SIMDJSON_PEVAL_TRACE_ERROR(code);
+                err->add(code);
+            }
+        };
+
+    return value<SJValue>(val_ptr, get_value);
+}
+
+
+/**
+ * Create evalutation function to store a string into a
+ * `std::string_view`.
+ *
+ * @param val_ptr Pointer to location to store the value.
  * @param is_null Pointer to location to store `null` status. If
  *                `(is_null == nullptr)` a `null` is not allowed.
  *
  * @return Function to evaluate JSON value.
  */
 template<typename SJValue = simdjson::ondemand::value>
-inline eval_fn_type<SJValue>
-string_value(std::string_view *val_ptr, bool *is_null = nullptr) {
+inline auto
+string_value(std::string_view *val_ptr, bool *is_null) {
     _SIMDJSON_PEVAL_TRACE_SET_NAME("string_value(std::string_view*,bool*)");
     _SIMDJSON_PEVAL_TRACE("start");
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
@@ -786,10 +813,7 @@ string_value(std::string_view *val_ptr, bool *is_null = nullptr) {
             }
         };
 
-    return (
-        is_null
-        ? value<SJValue>(val_ptr, get_value, is_null)
-        : value<SJValue>(val_ptr, get_value));
+    return value<SJValue>(val_ptr, get_value, is_null);
 }
 
 /**
@@ -801,7 +825,7 @@ string_value(std::string_view *val_ptr, bool *is_null = nullptr) {
  * @return Function to evaluate JSON value.
  */
 template<typename SJValue = simdjson::ondemand::value>
-inline eval_fn_type<SJValue>
+inline auto
 string_value(std::optional<std::string_view> *opt_ptr) {
     _SIMDJSON_PEVAL_TRACE_SET_NAME(
         "string_value(std::optional<std::string_view>*)");
@@ -826,14 +850,46 @@ string_value(std::optional<std::string_view> *opt_ptr) {
  * `std::string`.
  *
  * @param val_ptr Pointer to location to store the value.
+ *
+ * @return Function to evaluate JSON value.
+ */
+template<typename SJValue = simdjson::ondemand::value>
+inline auto
+string_value(std::string *val_ptr) {
+    _SIMDJSON_PEVAL_TRACE_SET_NAME("string_value(std::string*)");
+    _SIMDJSON_PEVAL_TRACE("start");
+    _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
+
+    auto get_value =
+        [](auto *sj_result, auto *val_ptr, auto *err) {
+            _SIMDJSON_PEVAL_TRACE("start:get_value");
+            std::string_view tmp_value;
+            const auto code = sj_result->value().get_string().get(tmp_value);
+            if (code) {
+                _SIMDJSON_PEVAL_TRACE_ERROR(code);
+                err->add(code);
+            }
+            else {
+                *val_ptr = tmp_value;
+            }
+        };
+
+    return value<SJValue>(val_ptr, get_value);
+}
+
+/**
+ * Create evalutation function to store a string into a
+ * `std::string`.
+ *
+ * @param val_ptr Pointer to location to store the value.
  * @param is_null Pointer to location to store `null` status. If
  *                `(is_null == nullptr)` a `null` is not allowed.
  *
  * @return Function to evaluate JSON value.
  */
 template<typename SJValue = simdjson::ondemand::value>
-inline eval_fn_type<SJValue>
-string_value(std::string *val_ptr, bool *is_null = nullptr) {
+inline auto
+string_value(std::string *val_ptr, bool *is_null) {
     _SIMDJSON_PEVAL_TRACE_SET_NAME("string_value(std::string*,bool*)");
     _SIMDJSON_PEVAL_TRACE("start");
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
@@ -852,10 +908,7 @@ string_value(std::string *val_ptr, bool *is_null = nullptr) {
             }
         };
 
-    return (
-        is_null
-        ? value<SJValue>(val_ptr, get_value, is_null)
-        : value<SJValue>(val_ptr, get_value));
+    return value<SJValue>(val_ptr, get_value, is_null);
 }
 
 /**
@@ -867,7 +920,7 @@ string_value(std::string *val_ptr, bool *is_null = nullptr) {
  * @return Function to evaluate JSON value.
  */
 template<typename SJValue = simdjson::ondemand::value>
-inline eval_fn_type<SJValue>
+inline auto
 string_value(std::optional<std::string> *opt_ptr) {
     _SIMDJSON_PEVAL_TRACE_SET_NAME("string_value(std::optional<std::string>*)");
     _SIMDJSON_PEVAL_TRACE("start");
@@ -896,14 +949,43 @@ string_value(std::optional<std::string> *opt_ptr) {
  * `int64_t`.
  *
  * @param val_ptr Pointer to location to store the value.
+ *
+ * @return Function to evaluate JSON value.
+ */
+template<typename SJValue = simdjson::ondemand::value>
+inline auto
+string_value(int64_t *val_ptr) {
+    _SIMDJSON_PEVAL_TRACE_SET_NAME("string_value(int64_t*)");
+    _SIMDJSON_PEVAL_TRACE("start");
+    _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
+
+    auto get_value =
+        [](auto *sj_result, auto *val_ptr, auto *err) {
+            _SIMDJSON_PEVAL_TRACE("start:get_value");
+            const auto code =
+                sj_result->value().get_int64_in_string().get(*val_ptr);
+            if (code) {
+                _SIMDJSON_PEVAL_TRACE_ERROR(code);
+                err->add(code);
+            }
+        };
+
+    return value<SJValue>(val_ptr, get_value);
+}
+
+/**
+ * Create evalutation function to convert and store a string into a
+ * `int64_t`.
+ *
+ * @param val_ptr Pointer to location to store the value.
  * @param is_null Pointer to location to store `null` status. If
  *                `(is_null == nullptr)` a `null` is not allowed.
  *
  * @return Function to evaluate JSON value.
  */
 template<typename SJValue = simdjson::ondemand::value>
-inline eval_fn_type<SJValue>
-string_value(int64_t *val_ptr, bool *is_null = nullptr) {
+inline auto
+string_value(int64_t *val_ptr, bool *is_null) {
     _SIMDJSON_PEVAL_TRACE_SET_NAME("string_value(int64_t*,bool*)");
     _SIMDJSON_PEVAL_TRACE("start");
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
@@ -919,10 +1001,7 @@ string_value(int64_t *val_ptr, bool *is_null = nullptr) {
             }
         };
 
-    return (
-        is_null
-        ? value<SJValue>(val_ptr, get_value, is_null)
-        : value<SJValue>(val_ptr, get_value));
+    return value<SJValue>(val_ptr, get_value, is_null);
 }
 
 /**
@@ -934,7 +1013,7 @@ string_value(int64_t *val_ptr, bool *is_null = nullptr) {
  * @return Function to evaluate JSON value.
  */
 template<typename SJValue = simdjson::ondemand::value>
-inline eval_fn_type<SJValue>
+inline auto
 string_value(std::optional<int64_t> *opt_ptr) {
     _SIMDJSON_PEVAL_TRACE_SET_NAME("string_value(std::optional<int64_t>*)");
     _SIMDJSON_PEVAL_TRACE("start");
@@ -956,7 +1035,36 @@ string_value(std::optional<int64_t> *opt_ptr) {
 
 /**
  * Create evalutation function to convert and store a string into a
- * `int64_t`.
+ * `uint64_t`.
+ *
+ * @param val_ptr Pointer to location to store the value.
+ *
+ * @return Function to evaluate JSON value.
+ */
+template<typename SJValue = simdjson::ondemand::value>
+inline auto
+string_value(uint64_t *val_ptr) {
+    _SIMDJSON_PEVAL_TRACE_SET_NAME("string_value(uint64_t*)");
+    _SIMDJSON_PEVAL_TRACE("start");
+    _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
+
+    auto get_value =
+        [](auto *sj_result, auto *val_ptr, auto *err) {
+            _SIMDJSON_PEVAL_TRACE("start:get_value");
+            const auto code =
+                sj_result->value().get_uint64_in_string().get(*val_ptr);
+            if (code) {
+                _SIMDJSON_PEVAL_TRACE_ERROR(code);
+                err->add(code);
+            }
+        };
+
+    return value<SJValue>(val_ptr, get_value);
+}
+
+/**
+ * Create evalutation function to convert and store a string into a
+ * `uint64_t`.
  *
  * @param val_ptr Pointer to location to store the value.
  * @param is_null Pointer to location to store `null` status. If
@@ -965,8 +1073,8 @@ string_value(std::optional<int64_t> *opt_ptr) {
  * @return Function to evaluate JSON value.
  */
 template<typename SJValue = simdjson::ondemand::value>
-inline eval_fn_type<SJValue>
-string_value(uint64_t *val_ptr, bool *is_null = nullptr) {
+inline auto
+string_value(uint64_t *val_ptr, bool *is_null) {
     _SIMDJSON_PEVAL_TRACE_SET_NAME("string_value(uint64_t*,bool*)");
     _SIMDJSON_PEVAL_TRACE("start");
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
@@ -982,10 +1090,7 @@ string_value(uint64_t *val_ptr, bool *is_null = nullptr) {
             }
         };
 
-    return (
-        is_null
-        ? value<SJValue>(val_ptr, get_value, is_null)
-        : value<SJValue>(val_ptr, get_value));
+    return value<SJValue>(val_ptr, get_value, is_null);
 }
 
 /**
@@ -997,7 +1102,7 @@ string_value(uint64_t *val_ptr, bool *is_null = nullptr) {
  * @return Function to evaluate JSON value.
  */
 template<typename SJValue = simdjson::ondemand::value>
-inline eval_fn_type<SJValue>
+inline auto
 string_value(std::optional<uint64_t> *opt_ptr) {
     _SIMDJSON_PEVAL_TRACE_SET_NAME("string_value(std::optional<uint64_t>*)");
     _SIMDJSON_PEVAL_TRACE("start");
@@ -1022,14 +1127,43 @@ string_value(std::optional<uint64_t> *opt_ptr) {
  * `double`.
  *
  * @param val_ptr Pointer to location to store the value.
+ *
+ * @return Function to evaluate JSON value.
+ */
+template<typename SJValue = simdjson::ondemand::value>
+inline auto
+string_value(double *val_ptr) {
+    _SIMDJSON_PEVAL_TRACE_SET_NAME("string_value(double*)");
+    _SIMDJSON_PEVAL_TRACE("start");
+    _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
+
+    auto get_value =
+        [](auto *sj_result, auto *val_ptr, auto *err) {
+            _SIMDJSON_PEVAL_TRACE("start:get_value");
+            const auto code =
+                sj_result->value().get_double_in_string().get(*val_ptr);
+            if (code) {
+                _SIMDJSON_PEVAL_TRACE_ERROR(code);
+                err->add(code);
+            }
+        };
+
+    return value<SJValue>(val_ptr, get_value);
+}
+
+/**
+ * Create evalutation function to convert and store a string into a
+ * `double`.
+ *
+ * @param val_ptr Pointer to location to store the value.
  * @param is_null Pointer to location to store `null` status. If
  *                `(is_null == nullptr)` a `null` is not allowed.
  *
  * @return Function to evaluate JSON value.
  */
 template<typename SJValue = simdjson::ondemand::value>
-inline eval_fn_type<SJValue>
-string_value(double *val_ptr, bool *is_null = nullptr) {
+inline auto
+string_value(double *val_ptr, bool *is_null) {
     _SIMDJSON_PEVAL_TRACE_SET_NAME("string_value(double*,bool*)");
     _SIMDJSON_PEVAL_TRACE("start");
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
@@ -1045,10 +1179,7 @@ string_value(double *val_ptr, bool *is_null = nullptr) {
             }
         };
 
-    return (
-        is_null
-        ? value<SJValue>(val_ptr, get_value, is_null)
-        : value<SJValue>(val_ptr, get_value));
+    return value<SJValue>(val_ptr, get_value, is_null);
 }
 
 /**
@@ -1060,7 +1191,7 @@ string_value(double *val_ptr, bool *is_null = nullptr) {
  * @return Function to evaluate JSON value.
  */
 template<typename SJValue = simdjson::ondemand::value>
-inline eval_fn_type<SJValue>
+inline auto
 string_value(std::optional<double> *opt_ptr) {
     _SIMDJSON_PEVAL_TRACE_SET_NAME("string_value(std::optional<double>*)");
     _SIMDJSON_PEVAL_TRACE("start");
@@ -1093,14 +1224,42 @@ string_value(std::optional<double> *opt_ptr) {
  * `int64_t`.
  *
  * @param val_ptr Pointer to location to store the value.
+ *
+ * @return Function to evaluate JSON value.
+ */
+template<typename SJValue = simdjson::ondemand::value>
+inline auto
+number_value(int64_t *val_ptr) {
+    _SIMDJSON_PEVAL_TRACE_SET_NAME("number_value(int64_t*)");
+    _SIMDJSON_PEVAL_TRACE("start");
+    _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
+
+    auto get_value =
+        [](auto *sj_result, auto *val_ptr, auto *err) {
+            _SIMDJSON_PEVAL_TRACE("start:get_value");
+            const auto code = sj_result->value().get_int64().get(*val_ptr);
+            if (code) {
+                _SIMDJSON_PEVAL_TRACE_ERROR(code);
+                err->add(code);
+            }
+        };
+
+    return value<SJValue>(val_ptr, get_value);
+}
+
+/**
+ * Create evalutation function to store a number into an
+ * `int64_t`.
+ *
+ * @param val_ptr Pointer to location to store the value.
  * @param is_null Pointer to location to store `null` status. If
  *                `(is_null == nullptr)` a `null` is not allowed.
  *
  * @return Function to evaluate JSON value.
  */
 template<typename SJValue = simdjson::ondemand::value>
-inline eval_fn_type<SJValue>
-number_value(int64_t *val_ptr, bool *is_null = nullptr) {
+inline auto
+number_value(int64_t *val_ptr, bool *is_null) {
     _SIMDJSON_PEVAL_TRACE_SET_NAME("number_value(int64_t*,bool*)");
     _SIMDJSON_PEVAL_TRACE("start");
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
@@ -1115,10 +1274,7 @@ number_value(int64_t *val_ptr, bool *is_null = nullptr) {
             }
         };
 
-    return (
-        is_null
-        ? value<SJValue>(val_ptr, get_value, is_null)
-        : value<SJValue>(val_ptr, get_value));
+    return value<SJValue>(val_ptr, get_value, is_null);
 }
 
 /**
@@ -1130,7 +1286,7 @@ number_value(int64_t *val_ptr, bool *is_null = nullptr) {
  * @return Function to evaluate JSON value.
  */
 template<typename SJValue = simdjson::ondemand::value>
-inline eval_fn_type<SJValue>
+inline auto
 number_value(std::optional<int64_t> *opt_ptr) {
     _SIMDJSON_PEVAL_TRACE_SET_NAME("number_value(std::optional<int64_t>*)");
     _SIMDJSON_PEVAL_TRACE("start");
@@ -1154,14 +1310,42 @@ number_value(std::optional<int64_t> *opt_ptr) {
  * `uint64_t`.
  *
  * @param val_ptr Pointer to location to store the value.
+ *
+ * @return Function to evaluate JSON value.
+ */
+template<typename SJValue = simdjson::ondemand::value>
+inline auto
+number_value(uint64_t *val_ptr) {
+    _SIMDJSON_PEVAL_TRACE_SET_NAME("number_value(uint64_t*)");
+    _SIMDJSON_PEVAL_TRACE("start");
+    _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
+
+    auto get_value =
+        [](auto *sj_result, auto *val_ptr, auto *err) {
+            _SIMDJSON_PEVAL_TRACE("start:get_value");
+            const auto code = sj_result->value().get_uint64().get(*val_ptr);
+            if (code) {
+                _SIMDJSON_PEVAL_TRACE_ERROR(code);
+                err->add(code);
+            }
+        };
+
+    return value<SJValue>(val_ptr, get_value);
+}
+
+/**
+ * Create evalutation function to store a number into a
+ * `uint64_t`.
+ *
+ * @param val_ptr Pointer to location to store the value.
  * @param is_null Pointer to location to store `null` status. If
  *                `(is_null == nullptr)` a `null` is not allowed.
  *
  * @return Function to evaluate JSON value.
  */
 template<typename SJValue = simdjson::ondemand::value>
-inline eval_fn_type<SJValue>
-number_value(uint64_t *val_ptr, bool *is_null = nullptr) {
+inline auto
+number_value(uint64_t *val_ptr, bool *is_null) {
     _SIMDJSON_PEVAL_TRACE_SET_NAME("number_value(uint64_t*,bool*)");
     _SIMDJSON_PEVAL_TRACE("start");
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
@@ -1176,10 +1360,7 @@ number_value(uint64_t *val_ptr, bool *is_null = nullptr) {
             }
         };
 
-    return (
-        is_null
-        ? value<SJValue>(val_ptr, get_value, is_null)
-        : value<SJValue>(val_ptr, get_value));
+    return value<SJValue>(val_ptr, get_value, is_null);
 }
 
 /**
@@ -1191,7 +1372,7 @@ number_value(uint64_t *val_ptr, bool *is_null = nullptr) {
  * @return Function to evaluate JSON value.
  */
 template<typename SJValue = simdjson::ondemand::value>
-inline eval_fn_type<SJValue>
+inline auto
 number_value(std::optional<uint64_t> *opt_ptr) {
     _SIMDJSON_PEVAL_TRACE_SET_NAME("number_value(std::optional<uint64_t>*)");
     _SIMDJSON_PEVAL_TRACE("start");
@@ -1215,14 +1396,42 @@ number_value(std::optional<uint64_t> *opt_ptr) {
  * `double`.
  *
  * @param val_ptr Pointer to location to store the value.
+ *
+ * @return Function to evaluate JSON value.
+ */
+template<typename SJValue = simdjson::ondemand::value>
+inline auto
+number_value(double *val_ptr) {
+    _SIMDJSON_PEVAL_TRACE_SET_NAME("number_value(double*)");
+    _SIMDJSON_PEVAL_TRACE("start");
+    _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
+
+    auto get_value =
+        [](auto *sj_result, auto *val_ptr, auto *err) {
+            _SIMDJSON_PEVAL_TRACE("start:get_value");
+            const auto code = sj_result->value().get_double().get(*val_ptr);
+            if (code) {
+                _SIMDJSON_PEVAL_TRACE_ERROR(code);
+                err->add(code);
+            }
+        };
+
+    return value<SJValue>(val_ptr, get_value);
+}
+
+/**
+ * Create evalutation function to store a number into a
+ * `double`.
+ *
+ * @param val_ptr Pointer to location to store the value.
  * @param is_null Pointer to location to store `null` status. If
  *                `(is_null == nullptr)` a `null` is not allowed.
  *
  * @return Function to evaluate JSON value.
  */
 template<typename SJValue = simdjson::ondemand::value>
-inline eval_fn_type<SJValue>
-number_value(double *val_ptr, bool *is_null = nullptr) {
+inline auto
+number_value(double *val_ptr, bool *is_null) {
     _SIMDJSON_PEVAL_TRACE_SET_NAME("number_value(double*,bool*)");
     _SIMDJSON_PEVAL_TRACE("start");
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
@@ -1237,10 +1446,7 @@ number_value(double *val_ptr, bool *is_null = nullptr) {
             }
         };
 
-    return (
-        is_null
-        ? value<SJValue>(val_ptr, get_value, is_null)
-        : value<SJValue>(val_ptr, get_value));
+    return value<SJValue>(val_ptr, get_value, is_null);
 }
 
 /**
@@ -1252,7 +1458,7 @@ number_value(double *val_ptr, bool *is_null = nullptr) {
  * @return Function to evaluate JSON value.
  */
 template<typename SJValue = simdjson::ondemand::value>
-inline eval_fn_type<SJValue>
+inline auto
 number_value(std::optional<double> *opt_ptr) {
     _SIMDJSON_PEVAL_TRACE_SET_NAME("number_value(std::optional<double>*)");
     _SIMDJSON_PEVAL_TRACE("start");
@@ -1283,14 +1489,42 @@ number_value(std::optional<double> *opt_ptr) {
  * `bool`.
  *
  * @param val_ptr Pointer to location to store the value.
+ *
+ * @return Function to evaluate JSON value.
+ */
+template<typename SJValue = simdjson::ondemand::value>
+inline auto
+bool_value(bool *val_ptr) {
+    _SIMDJSON_PEVAL_TRACE_SET_NAME("bool_value(bool*)");
+    _SIMDJSON_PEVAL_TRACE("start");
+    _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
+
+    auto get_value =
+        [](auto *sj_result, auto *val_ptr, auto *err) {
+            _SIMDJSON_PEVAL_TRACE("start:get_value");
+            const auto code = sj_result->value().get_bool().get(*val_ptr);
+            if (code) {
+                _SIMDJSON_PEVAL_TRACE_ERROR(code);
+                err->add(code);
+            }
+        };
+
+    return value<SJValue>(val_ptr, get_value);
+}
+
+/**
+ * Create evalutation function to store a number into a
+ * `bool`.
+ *
+ * @param val_ptr Pointer to location to store the value.
  * @param is_null Pointer to location to store `null` status. If
  *                `(is_null == nullptr)` a `null` is not allowed.
  *
  * @return Function to evaluate JSON value.
  */
 template<typename SJValue = simdjson::ondemand::value>
-inline eval_fn_type<SJValue>
-bool_value(bool *val_ptr, bool *is_null = nullptr) {
+inline auto
+bool_value(bool *val_ptr, bool *is_null) {
     _SIMDJSON_PEVAL_TRACE_SET_NAME("bool_value(bool*,bool*)");
     _SIMDJSON_PEVAL_TRACE("start");
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
@@ -1305,10 +1539,7 @@ bool_value(bool *val_ptr, bool *is_null = nullptr) {
             }
         };
 
-    return (
-        is_null
-        ? value<SJValue>(val_ptr, get_value, is_null)
-        : value<SJValue>(val_ptr, get_value));
+    return value<SJValue>(val_ptr, get_value, is_null);
 }
 
 /**
@@ -1320,7 +1551,7 @@ bool_value(bool *val_ptr, bool *is_null = nullptr) {
  * @return Function to evaluate JSON value.
  */
 template<typename SJValue = simdjson::ondemand::value>
-inline eval_fn_type<SJValue>
+inline auto
 bool_value(std::optional<bool> *opt_ptr) {
     _SIMDJSON_PEVAL_TRACE_SET_NAME("bool_value(std::optional<bool>*)");
     _SIMDJSON_PEVAL_TRACE("start");
@@ -1368,18 +1599,17 @@ bool_value(std::optional<bool> *opt_ptr) {
 template<
     typename SJValue = simdjson::ondemand::value,
     typename OutFn>
-inline eval_fn_type<SJValue>
+inline auto
 object_to_function(OutFn out_fn)
 {
+    using ResultType = simdjson::simdjson_result<SJValue>;
+
     _SIMDJSON_PEVAL_TRACE_SET_NAME("object_to_function(OutFn)");
     _SIMDJSON_PEVAL_TRACE("start");
 
     return
         [out_fn]
-        (simdjson::simdjson_result<SJValue> &sj_result,
-         error *err)
-        mutable
-        {
+        (ResultType &sj_result, error *err) mutable {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -1451,9 +1681,11 @@ object_to_function(OutFn out_fn)
 template<
     typename SJValue = simdjson::ondemand::value,
     typename OutFn>
-inline eval_fn_type<SJValue>
+inline auto
 object_to_function(bool *is_null, OutFn out_fn)
 {
+    using ResultType = simdjson::simdjson_result<SJValue>;
+
     _SIMDJSON_PEVAL_TRACE_SET_NAME("object_to_function(bool*,OutFn)");
     _SIMDJSON_PEVAL_TRACE("start");
 
@@ -1461,7 +1693,7 @@ object_to_function(bool *is_null, OutFn out_fn)
 
     return
         [is_null, call_fn]
-        (simdjson::simdjson_result<SJValue> &sj_result, error *err) mutable {
+        (ResultType &sj_result, error *err) mutable {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -1501,24 +1733,24 @@ template<
     typename StringType,
     typename ValueType,
     typename ValueFn>
-inline eval_fn_type<SJValue>
+inline auto
 object_to_function(
     OutFn out_fn,
     std::pair<StringType, ValueType> *temp_pair_ptr,
     ValueFn value_fn)
 {
+    using ResultType = simdjson::simdjson_result<SJValue>;
+    using SJValueType = simdjson::simdjson_result<simdjson::ondemand::value>;
+
     _SIMDJSON_PEVAL_TRACE_SET_NAME(
         "object_to_function(OutFn,std::pair<StringType,ValueType>*,MemberFn)");
     _SIMDJSON_PEVAL_TRACE("start");
     _SIMDJSON_PEVAL_ASSERT(temp_pair_ptr != nullptr);
-    _SIMDJSON_PEVAL_ASSERT(value_fn != nullptr);
 
     auto gen_out_fn =
         object_to_function<SJValue>(
             [out_fn, temp_pair_ptr, value_fn]
-            (std::string_view name,
-             simdjson::simdjson_result<simdjson::ondemand::value> *sj_result,
-             error *err)
+            (std::string_view name, SJValueType *sj_result, error *err)
             mutable
             {
                 _SIMDJSON_PEVAL_TRACE("start_gen_out_fn");
@@ -1534,7 +1766,7 @@ object_to_function(
 
     return
         [gen_out_fn]
-        (simdjson::simdjson_result<SJValue> &sj_result, error *err) mutable
+        (ResultType &sj_result, error *err) mutable
         {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
@@ -1571,26 +1803,27 @@ template<
     typename StringType,
     typename ValueType,
     typename ValueFn>
-inline eval_fn_type<SJValue>
+inline auto
 object_to_function(
     bool *is_null,
     OutFn out_fn,
     std::pair<StringType, ValueType> *temp_pair_ptr,
     ValueFn value_fn)
 {
+    using ResultType = simdjson::simdjson_result<SJValue>;
+
     _SIMDJSON_PEVAL_TRACE_SET_NAME(
         "object_to_function("
         "bool*,OutFn,std::pair<StringType,ValueType>*,MemberFn)");
     _SIMDJSON_PEVAL_TRACE("start");
     _SIMDJSON_PEVAL_ASSERT(temp_pair_ptr != nullptr);
-    _SIMDJSON_PEVAL_ASSERT(value_fn != nullptr);
 
     auto call_fn =
         object_to_function<SJValue>(out_fn, temp_pair_ptr, value_fn);
 
     return
         [is_null, call_fn]
-        (simdjson::simdjson_result<SJValue> &sj_result, error *err) mutable
+        (ResultType &sj_result, error *err) mutable
         {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
@@ -1627,18 +1860,19 @@ template<
     typename StringType,
     typename ValueType,
     typename ValueFn>
-inline eval_fn_type<SJValue>
+inline auto
 object_to_out_iter(
     OutIter out_iter,
     std::pair<StringType, ValueType> *temp_pair_ptr,
     ValueFn value_fn)
 {
+    using ResultType = simdjson::simdjson_result<SJValue>;
+
     _SIMDJSON_PEVAL_TRACE_SET_NAME(
         "object_to_out_iter"
         "(OutIter,std::pair<StringType,ValueType>*,MemberFn)");
     _SIMDJSON_PEVAL_TRACE("start");
     _SIMDJSON_PEVAL_ASSERT(temp_pair_ptr != nullptr);
-    _SIMDJSON_PEVAL_ASSERT(value_fn != nullptr);
 
     auto out_fn =
         [out_iter]
@@ -1652,7 +1886,7 @@ object_to_out_iter(
 
     return
         [save_fn]
-        (simdjson::simdjson_result<SJValue> &sj_result, error *err) mutable
+        (ResultType &sj_result, error *err) mutable
         {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
@@ -1686,26 +1920,27 @@ template<
     typename StringType,
     typename ValueType,
     typename ValueFn>
-inline eval_fn_type<SJValue>
+inline auto
 object_to_out_iter(
     bool *is_null,
     OutIter out_iter,
     std::pair<StringType, ValueType> *temp_pair_ptr,
     ValueFn value_fn)
 {
+    using ResultType = simdjson::simdjson_result<SJValue>;
+
     _SIMDJSON_PEVAL_TRACE_SET_NAME(
         "object_to_out_iter"
         "(bool*,OutIter,std::pair<StringType,ValueType>*,MemberFn)");
     _SIMDJSON_PEVAL_TRACE("start");
     _SIMDJSON_PEVAL_ASSERT(temp_pair_ptr != nullptr);
-    _SIMDJSON_PEVAL_ASSERT(value_fn != nullptr);
 
     auto save_fn =
         object_to_out_iter<SJValue>(out_iter, temp_pair_ptr, value_fn);
 
     return
         [is_null, save_fn]
-        (simdjson::simdjson_result<SJValue> &sj_result, error *err) mutable
+        (ResultType &sj_result, error *err) mutable
         {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
@@ -1732,15 +1967,16 @@ object_to_out_iter(
 template<
     typename SJValue = simdjson::ondemand::value,
     typename MemberFn>
-inline eval_fn_type<SJValue>
+inline auto
 object(MemberFn member_fn) {
+    using ResultType = simdjson::simdjson_result<SJValue>;
+
     _SIMDJSON_PEVAL_TRACE_SET_NAME("object(MemberFn)");
     _SIMDJSON_PEVAL_TRACE("start");
-    _SIMDJSON_PEVAL_ASSERT(member_fn != nullptr);
 
     return
         [member_fn]
-        (simdjson::simdjson_result<SJValue> &sj_result, error *err) {
+        (ResultType &sj_result, error *err) mutable {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -1780,11 +2016,12 @@ template<
     typename SJValue = simdjson::ondemand::value,
     typename MemberFn,
     typename ...MoreMemberFn>
-inline eval_fn_type<SJValue>
+inline auto
 object(MemberFn member_fn,  MoreMemberFn ...more_member_fn) {
+    using ResultType = simdjson::simdjson_result<SJValue>;
+
     _SIMDJSON_PEVAL_TRACE_SET_NAME("object(MemberFn,MoreMemberFn...)");
     _SIMDJSON_PEVAL_TRACE("start");
-    _SIMDJSON_PEVAL_ASSERT(member_fn != nullptr);
 
     auto eval_more_fn =
         object<simdjson::ondemand::object>(
@@ -1792,7 +2029,7 @@ object(MemberFn member_fn,  MoreMemberFn ...more_member_fn) {
 
     return
         [member_fn, eval_more_fn]
-        (simdjson::simdjson_result<SJValue> &sj_result, error *err) {
+        (ResultType &sj_result, error *err) mutable {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -1831,8 +2068,10 @@ object(MemberFn member_fn,  MoreMemberFn ...more_member_fn) {
 template<
     typename SJValue = simdjson::ondemand::value,
     typename ...AllMemberFn>
-inline eval_fn_type<SJValue>
+inline auto
 object(bool *is_null, AllMemberFn ...all_member_fn) {
+    using ResultType = simdjson::simdjson_result<SJValue>;
+
     _SIMDJSON_PEVAL_TRACE_SET_NAME("object(bool*,AllMemberFn...)");
     _SIMDJSON_PEVAL_TRACE("start");
 
@@ -1842,7 +2081,7 @@ object(bool *is_null, AllMemberFn ...all_member_fn) {
 
     return
         [is_null, eval_all_fn]
-        (simdjson::simdjson_result<SJValue> &sj_result, error *err) mutable {
+        (ResultType &sj_result, error *err) mutable {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -1874,9 +2113,11 @@ object(bool *is_null, AllMemberFn ...all_member_fn) {
  * @return Function to evaluate JSON object.
  */
 template<typename SJValue = simdjson::ondemand::value>
-inline eval_fn_type<SJValue>
+inline auto
 object(simdjson::simdjson_result<simdjson::ondemand::object> *val_ptr)
 {
+    using SJObjectType = simdjson::simdjson_result<simdjson::ondemand::object>;
+
     _SIMDJSON_PEVAL_TRACE_SET_NAME(
         "object(simdjson::simdjson_result<simdjson::ondemand::object>*)");
     _SIMDJSON_PEVAL_TRACE("start");
@@ -1886,11 +2127,7 @@ object(simdjson::simdjson_result<simdjson::ondemand::object> *val_ptr)
         [](auto *sj_result, auto *val_ptr, auto *err) {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
 
-            if constexpr(
-                std::is_same_v<
-                    decltype(*sj_result),
-                    simdjson::simdjson_result<simdjson::ondemand::object>&>)
-            {
+            if constexpr(std::is_same_v<decltype(*sj_result), SJObjectType&>) {
                 _SIMDJSON_PEVAL_TRACE("type:object");
                 *val_ptr = *sj_result;
             }
@@ -1922,11 +2159,13 @@ object(simdjson::simdjson_result<simdjson::ondemand::object> *val_ptr)
  * @return Function to evaluate JSON object.
  */
 template<typename SJValue = simdjson::ondemand::value>
-inline eval_fn_type<SJValue>
+inline auto
 object(
     simdjson::simdjson_result<simdjson::ondemand::object> *val_ptr,
     bool *is_null)
 {
+    using SJObjectType = simdjson::simdjson_result<simdjson::ondemand::object>;
+
     _SIMDJSON_PEVAL_TRACE_SET_NAME(
         "object(simdjson::simdjson_result<simdjson::ondemand::object>*,bool*)");
     _SIMDJSON_PEVAL_TRACE("start");
@@ -1936,11 +2175,7 @@ object(
         [](auto *sj_result, auto *val_ptr, auto *err) {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
 
-            if constexpr(
-                std::is_same_v<
-                    decltype(*sj_result),
-                    simdjson::simdjson_result<simdjson::ondemand::object>&>)
-            {
+            if constexpr(std::is_same_v<decltype(*sj_result), SJObjectType&>) {
                 _SIMDJSON_PEVAL_TRACE("type:object");
                 *val_ptr = *sj_result;
             }
@@ -1958,10 +2193,7 @@ object(
             }
         };
 
-    return (
-        is_null
-        ? value<SJValue>(val_ptr, get_value, is_null)
-        : value<SJValue>(val_ptr, get_value));
+    return value<SJValue>(val_ptr, get_value, is_null);
 }
 
 
@@ -1975,18 +2207,17 @@ object(
  * @return Function to evaluate JSON object.
  */
 template<typename ValueFn>
-inline eval_fn_type<simdjson::ondemand::object>
+inline auto
 member(std::string_view name, ValueFn value_fn)
 {
+    using ResultType = simdjson::simdjson_result<simdjson::ondemand::object>;
+
     _SIMDJSON_PEVAL_TRACE_SET_NAME("member(std::string_view,ValueFn)");
     _SIMDJSON_PEVAL_TRACE("start");
-    _SIMDJSON_PEVAL_ASSERT(value_fn != nullptr);
 
     return
         [name, value_fn]
-        ( simdjson::simdjson_result<simdjson::ondemand::object> &sj_result,
-          error *err)
-        {
+        (ResultType &sj_result, error *err) mutable {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -2020,17 +2251,18 @@ member(std::string_view name, ValueFn value_fn)
  * @return Function to evaluate JSON object.
  */
 template<typename ValueFn>
-inline eval_fn_type<simdjson::ondemand::object>
+inline auto
 member(std::string_view name, ValueFn value_fn, bool *is_undefined)
 {
+    using ResultType = simdjson::simdjson_result<simdjson::ondemand::object>;
+
     _SIMDJSON_PEVAL_TRACE_SET_NAME("member(std::string_view,ValueFn,bool*)");
     _SIMDJSON_PEVAL_TRACE("start");
-    _SIMDJSON_PEVAL_ASSERT(value_fn != nullptr);
 
     return
         [name, value_fn, is_undefined]
-        ( simdjson::simdjson_result<simdjson::ondemand::object> &sj_result,
-          error *err)
+        (ResultType &sj_result, error *err)
+        mutable
         {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
@@ -2080,11 +2312,13 @@ member(std::string_view name, ValueFn value_fn, bool *is_undefined)
  */
 template<typename UseMembersFn,
          typename ...AllMemberFn>
-inline eval_fn_type<simdjson::ondemand::object>
+inline auto
 discriminator(
     UseMembersFn use_members_fn,
     AllMemberFn...all_member_fn)
 {
+    using ResultType = simdjson::simdjson_result<simdjson::ondemand::object>;
+
     _SIMDJSON_PEVAL_TRACE_SET_NAME(
         "discriminator(UseMembersFn,MemberFn,MoreMemberFn)");
     _SIMDJSON_PEVAL_TRACE("start");
@@ -2095,9 +2329,7 @@ discriminator(
 
     return
         [use_members_fn, eval_all_fn]
-        (simdjson::simdjson_result<simdjson::ondemand::object> &sj_result,
-         error *err)
-        {
+        (ResultType &sj_result, error *err) mutable {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             if (use_members_fn(&sj_result, err)) {
                 _SIMDJSON_PEVAL_TRACE("use_members");
@@ -2139,15 +2371,17 @@ discriminator(
 template<
     typename SJValue = simdjson::ondemand::value,
     typename OutFn>
-inline eval_fn_type<SJValue>
+inline auto
 array_to_function(OutFn out_fn)
 {
+    using ResultType = simdjson::simdjson_result<SJValue>;
+
     _SIMDJSON_PEVAL_TRACE_SET_NAME("array_to_function(OutFn)");
     _SIMDJSON_PEVAL_TRACE("start");
 
     return
         [out_fn]
-        (simdjson::simdjson_result<SJValue> &sj_result, error *err) mutable {
+        (ResultType &sj_result, error *err) mutable {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -2204,9 +2438,11 @@ array_to_function(OutFn out_fn)
 template<
     typename SJValue = simdjson::ondemand::value,
     typename OutFn>
-inline eval_fn_type<SJValue>
+inline auto
 array_to_function(bool *is_null, OutFn out_fn)
 {
+    using ResultType = simdjson::simdjson_result<SJValue>;
+
     _SIMDJSON_PEVAL_TRACE_SET_NAME("array_to_function(bool*.OutFn)");
     _SIMDJSON_PEVAL_TRACE("start");
 
@@ -2214,7 +2450,7 @@ array_to_function(bool *is_null, OutFn out_fn)
 
     return
         [is_null, call_fn]
-        (simdjson::simdjson_result<SJValue> &sj_result, error *err) mutable {
+        (ResultType &sj_result, error *err) mutable {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -2253,26 +2489,24 @@ template<
     typename OutFn,
     typename TempValue,
     typename ValueFn>
-inline eval_fn_type<SJValue>
+inline auto
 array_to_function(
     OutFn out_fn,
     TempValue *temp_value_ptr,
     ValueFn value_fn)
 {
+    using ResultType = simdjson::simdjson_result<SJValue>;
+    using SJValueType = simdjson::simdjson_result<simdjson::ondemand::value>;
+
     _SIMDJSON_PEVAL_TRACE_SET_NAME(
         "array_to_function(OutFn,TempValue*,ValueFn)");
     _SIMDJSON_PEVAL_TRACE("start");
     _SIMDJSON_PEVAL_ASSERT(temp_value_ptr != nullptr);
-    _SIMDJSON_PEVAL_ASSERT(value_fn != nullptr);
 
     auto gen_out_fn =
         array_to_function<SJValue>(
             [out_fn, temp_value_ptr, value_fn]
-            (size_t idx,
-             simdjson::simdjson_result<simdjson::ondemand::value> *sj_result,
-             error *err)
-            mutable
-            {
+            (size_t idx, SJValueType *sj_result, error *err) mutable {
                 _SIMDJSON_PEVAL_TRACE("start_gen_out_fn");
                 _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -2284,8 +2518,7 @@ array_to_function(
 
     return
         [gen_out_fn]
-        (simdjson::simdjson_result<SJValue> &sj_result, error *err) mutable
-        {
+        (ResultType &sj_result, error *err) mutable {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -2320,25 +2553,26 @@ template<
     typename OutFn,
     typename TempValue,
     typename ValueFn>
-inline eval_fn_type<SJValue>
+inline auto
 array_to_function(
     bool *is_null,
     OutFn out_fn,
     TempValue *temp_value_ptr,
     ValueFn value_fn)
 {
+    using ResultType = simdjson::simdjson_result<SJValue>;
+
     _SIMDJSON_PEVAL_TRACE_SET_NAME(
         "array_to_function(bool*,OutFn,TempValue*,ValueFn)");
     _SIMDJSON_PEVAL_TRACE("start");
     _SIMDJSON_PEVAL_ASSERT(temp_value_ptr != nullptr);
-    _SIMDJSON_PEVAL_ASSERT(value_fn != nullptr);
 
     auto call_fn =
         array_to_function<SJValue>(out_fn, temp_value_ptr, value_fn);
 
     return
         [is_null, call_fn]
-        (simdjson::simdjson_result<SJValue> &sj_result, error *err) mutable
+        (ResultType &sj_result, error *err) mutable
         {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
@@ -2374,17 +2608,18 @@ template<
     typename OutIter,
     typename TempValue,
     typename ValueFn>
-inline eval_fn_type<SJValue>
+inline auto
 array_to_out_iter(
     OutIter out_iter,
     TempValue *temp_value_ptr,
     ValueFn value_fn)
 {
+    using ResultType = simdjson::simdjson_result<SJValue>;
+
     _SIMDJSON_PEVAL_TRACE_SET_NAME(
         "array_to_out_iter(OutIter,TempValue*,ValueFn)");
     _SIMDJSON_PEVAL_TRACE("start");
     _SIMDJSON_PEVAL_ASSERT(temp_value_ptr != nullptr);
-    _SIMDJSON_PEVAL_ASSERT(value_fn != nullptr);
 
     auto out_fn =
         [out_iter]
@@ -2398,8 +2633,7 @@ array_to_out_iter(
 
     return
         [save_fn]
-        (simdjson::simdjson_result<SJValue> &sj_result, error *err) mutable
-        {
+        (ResultType &sj_result, error *err) mutable {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -2431,26 +2665,26 @@ template<
     typename OutIter,
     typename TempValue,
     typename ValueFn>
-inline eval_fn_type<SJValue>
+inline auto
 array_to_out_iter(
     bool *is_null,
     OutIter out_iter,
     TempValue *temp_value_ptr,
     ValueFn value_fn)
 {
+    using ResultType = simdjson::simdjson_result<SJValue>;
+
     _SIMDJSON_PEVAL_TRACE_SET_NAME(
         "array_to_out_iter(bool*,OutIter,TempValue*,ValueFn)");
     _SIMDJSON_PEVAL_TRACE("start");
     _SIMDJSON_PEVAL_ASSERT(temp_value_ptr != nullptr);
-    _SIMDJSON_PEVAL_ASSERT(value_fn != nullptr);
 
     auto save_fn =
         array_to_out_iter<SJValue>(out_iter, temp_value_ptr, value_fn);
 
     return
         [is_null, save_fn]
-        (simdjson::simdjson_result<SJValue> &sj_result, error *err) mutable
-        {
+        (ResultType &sj_result, error *err) mutable {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -2476,8 +2710,10 @@ array_to_out_iter(
 template<
     typename SJValue = simdjson::ondemand::value,
     typename ...AllElementFn>
-inline eval_fn_type<SJValue>
+inline auto
 array(AllElementFn ...all_element_fn) {
+    using ResultType = simdjson::simdjson_result<SJValue>;
+
     _SIMDJSON_PEVAL_TRACE_SET_NAME("array(AllElementFn...)");
     _SIMDJSON_PEVAL_TRACE("start");
 
@@ -2486,7 +2722,7 @@ array(AllElementFn ...all_element_fn) {
 
     return
         [eval_all_fn]
-        (simdjson::simdjson_result<SJValue> &sj_result, error *err) mutable {
+        (ResultType &sj_result, error *err) mutable {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -2508,7 +2744,8 @@ array(AllElementFn ...all_element_fn) {
             }
 
             auto sj_array_iter = sj_array.value().begin();
-            eval_all_fn(&sj_array, &sj_array_iter, 0, err);
+            auto sj_array_end  = sj_array.value().end();
+            eval_all_fn(&sj_array_iter, &sj_array_end, 0, err);
 
             _SIMDJSON_PEVAL_TRACE_EVAL_END();
         };
@@ -2526,8 +2763,10 @@ array(AllElementFn ...all_element_fn) {
 template<
     typename SJValue = simdjson::ondemand::value,
     typename ...AllElementFn>
-inline eval_fn_type<SJValue>
+inline auto
 array(bool *is_null, AllElementFn ...all_element_fn) {
+    using ResultType = simdjson::simdjson_result<SJValue>;
+
     _SIMDJSON_PEVAL_TRACE_SET_NAME("array(bool*,AllElementFn...)");
     _SIMDJSON_PEVAL_TRACE("start");
 
@@ -2537,7 +2776,7 @@ array(bool *is_null, AllElementFn ...all_element_fn) {
 
     return
         [is_null, eval_all_fn]
-        (simdjson::simdjson_result<SJValue> &sj_result, error *err) mutable {
+        (ResultType &sj_result, error *err) mutable {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -2569,9 +2808,11 @@ array(bool *is_null, AllElementFn ...all_element_fn) {
  * @return Function to evaluate JSON object.
  */
 template<typename SJValue = simdjson::ondemand::value>
-inline eval_fn_type<SJValue>
+inline auto
 array(simdjson::simdjson_result<simdjson::ondemand::array> *val_ptr)
 {
+    using JSArrayValue = simdjson::simdjson_result<simdjson::ondemand::array>;
+
     _SIMDJSON_PEVAL_TRACE_SET_NAME(
         "array(simdjson::simdjson_result<simdjson::ondemand::array>*)");
     _SIMDJSON_PEVAL_TRACE("start");
@@ -2580,11 +2821,7 @@ array(simdjson::simdjson_result<simdjson::ondemand::array> *val_ptr)
     auto get_value =
         [](auto *sj_result, auto *val_ptr, auto *err) mutable {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
-            if constexpr(
-                std::is_same_v<
-                    decltype(*sj_result),
-                    simdjson::simdjson_result<simdjson::ondemand::array>&>)
-            {
+            if constexpr(std::is_same_v<decltype(*sj_result), JSArrayValue&>) {
                 _SIMDJSON_PEVAL_TRACE("type:array");
                 *val_ptr = *sj_result;
             }
@@ -2616,11 +2853,13 @@ array(simdjson::simdjson_result<simdjson::ondemand::array> *val_ptr)
  * @return Function to evaluate JSON object.
  */
 template<typename SJValue = simdjson::ondemand::value>
-inline eval_fn_type<SJValue>
+inline auto
 array(
     simdjson::simdjson_result<simdjson::ondemand::array> *val_ptr,
     bool *is_null)
 {
+    using JSArrayValue = simdjson::simdjson_result<simdjson::ondemand::array>;
+
     _SIMDJSON_PEVAL_TRACE_SET_NAME(
         "array(simdjson::simdjson_result<simdjson::ondemand::array>*,bool*)");
     _SIMDJSON_PEVAL_TRACE("start");
@@ -2629,11 +2868,7 @@ array(
     auto get_value =
         [](auto *sj_result, auto *val_ptr, auto *err) mutable {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
-            if constexpr(
-                std::is_same_v<
-                    decltype(*sj_result),
-                    simdjson::simdjson_result<simdjson::ondemand::array>&>)
-            {
+            if constexpr(std::is_same_v<decltype(*sj_result), JSArrayValue&>) {
                 _SIMDJSON_PEVAL_TRACE("type:array");
                 *val_ptr = *sj_result;
             }
@@ -2651,10 +2886,7 @@ array(
             }
         };
 
-    return (
-        is_null
-        ? value<SJValue>(val_ptr, get_value, is_null)
-        : value<SJValue>(val_ptr, get_value));
+    return value<SJValue>(val_ptr, get_value, is_null);
 }
 
 

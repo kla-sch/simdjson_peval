@@ -83,7 +83,7 @@ main(int argc, char *argv[]) {
 
     // check for student
     auto is_student =
-        [&tmpPerson](auto Üresult, error *err) {
+        [&tmpPerson](auto *result, error *err) {
             return (tmpPerson.type == "student");
         };
 

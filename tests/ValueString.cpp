@@ -90,11 +90,11 @@ ValueStringParam::cases = {
         "text", R"("Text")", "Text", false,
         { // Plain
             {
-                {"string_value(std::string*,bool*)", "start"},
+                {"string_value(std::string*)", "start"},
                 {"value(ValuePtr,GetFn)", "start"},
 
                 {"value(ValuePtr,GetFn)", "eval_begin"},
-                {"string_value(std::string*,bool*)", "start:get_value"},
+                {"string_value(std::string*)", "start:get_value"},
                 {"value(ValuePtr,GetFn)", "eval_end"}
             }, {
             }
@@ -128,12 +128,12 @@ ValueStringParam::cases = {
         "null", R"(null)", "", true,
         { // Plain
             {
-                {"string_value(std::string*,bool*)", "start"},
+                {"string_value(std::string*)", "start"},
                 {"value(ValuePtr,GetFn)", "start"},
 
                 {"value(ValuePtr,GetFn)", "eval_begin"},
-                {"string_value(std::string*,bool*)", "start:get_value"},
-                {"string_value(std::string*,bool*)", "error:16"},
+                {"string_value(std::string*)", "start:get_value"},
+                {"string_value(std::string*)", "error:16"},
                 {"value(ValuePtr,GetFn)", "eval_end"}
             }, {
                 simdjson_peval::error_message{
@@ -168,12 +168,12 @@ ValueStringParam::cases = {
         "int", R"(10)", "", false,
         { // Plain
             {
-                {"string_value(std::string*,bool*)", "start"},
+                {"string_value(std::string*)", "start"},
                 {"value(ValuePtr,GetFn)", "start"},
 
                 {"value(ValuePtr,GetFn)", "eval_begin"},
-                {"string_value(std::string*,bool*)", "start:get_value"},
-                {"string_value(std::string*,bool*)", "error:16"},
+                {"string_value(std::string*)", "start:get_value"},
+                {"string_value(std::string*)", "error:16"},
                 {"value(ValuePtr,GetFn)", "eval_end"}
             }, {
                 simdjson_peval::error_message{

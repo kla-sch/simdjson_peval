@@ -91,11 +91,11 @@ ValueStringToDoubleParam::cases = {
         "positiveInt", R"("10")", 10, false,
         { // Plain
             {
-                {"string_value(double*,bool*)", "start"},
+                {"string_value(double*)", "start"},
                 {"value(ValuePtr,GetFn)", "start"},
 
                 {"value(ValuePtr,GetFn)", "eval_begin"},
-                {"string_value(double*,bool*)", "start:get_value"},
+                {"string_value(double*)", "start:get_value"},
                 {"value(ValuePtr,GetFn)", "eval_end"}
             }, {
             }
@@ -128,11 +128,11 @@ ValueStringToDoubleParam::cases = {
         "negativeInt", R"("-10")", -10, false,
         { // Plain
             {
-                {"string_value(double*,bool*)", "start"},
+                {"string_value(double*)", "start"},
                 {"value(ValuePtr,GetFn)", "start"},
 
                 {"value(ValuePtr,GetFn)", "eval_begin"},
-                {"string_value(double*,bool*)", "start:get_value"},
+                {"string_value(double*)", "start:get_value"},
                 {"value(ValuePtr,GetFn)", "eval_end"}
             }, {
             }
@@ -165,11 +165,11 @@ ValueStringToDoubleParam::cases = {
         "double", R"("10.5")", 10.5, false,
         { // Plain
             {
-                {"string_value(double*,bool*)", "start"},
+                {"string_value(double*)", "start"},
                 {"value(ValuePtr,GetFn)", "start"},
 
                 {"value(ValuePtr,GetFn)", "eval_begin"},
-                {"string_value(double*,bool*)", "start:get_value"},
+                {"string_value(double*)", "start:get_value"},
                 {"value(ValuePtr,GetFn)", "eval_end"}
             }, {
             }
@@ -202,12 +202,12 @@ ValueStringToDoubleParam::cases = {
         "null", R"(null)", 0, true,
         { // Plain
             {
-                {"string_value(double*,bool*)", "start"},
+                {"string_value(double*)", "start"},
                 {"value(ValuePtr,GetFn)", "start"},
 
                 {"value(ValuePtr,GetFn)", "eval_begin"},
-                {"string_value(double*,bool*)", "start:get_value"},
-                {"string_value(double*,bool*)", "error:16"},
+                {"string_value(double*)", "start:get_value"},
+                {"string_value(double*)", "error:16"},
                 {"value(ValuePtr,GetFn)", "eval_end"}
             }, {
                 { simdjson::INCORRECT_TYPE, "<root>" }
@@ -241,12 +241,12 @@ ValueStringToDoubleParam::cases = {
         "text", R"("text")", 0, false,
         { // Plain
             {
-                {"string_value(double*,bool*)", "start"},
+                {"string_value(double*)", "start"},
                 {"value(ValuePtr,GetFn)", "start"},
 
                 {"value(ValuePtr,GetFn)", "eval_begin"},
-                {"string_value(double*,bool*)", "start:get_value"},
-                {"string_value(double*,bool*)", "error:16"},
+                {"string_value(double*)", "start:get_value"},
+                {"string_value(double*)", "error:16"},
                 {"value(ValuePtr,GetFn)", "eval_end"}
             }, {
                 { simdjson::INCORRECT_TYPE, "<root>" }

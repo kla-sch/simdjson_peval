@@ -93,11 +93,11 @@ check: $(EXES)
 third_party: $(GOOGLETESTBUILD) $(SIMDJSONBUILD)
 
 testSimdjsonPeval_c++17: objs_c++17 third_party $(OBJS_17)
-	@echo "link for c++17: $@ "
+	@echo "[$(CPP)] link for c++17: $@ "
 	@$(CPP) -std=c++17 -o $@  $(OBJS_17) $(CCFLAGS) $(LDFLAGS)
 
 testSimdjsonPeval_c++20: objs_c++20 third_party $(OBJS_20)
-	@echo "link for c++20: $@ "
+	@echo "[$(CPP)] link for c++20: $@ "
 	@$(CPP) -std=c++20 -o $@  $(OBJS_20) $(CCFLAGS) $(LDFLAGS)
 
 objs_c++11 objs_c++14 objs_c++17 objs_c++20:
@@ -123,11 +123,11 @@ extra_clean: clean
 	@rm -rf objs_c++11 objs_c++14 objs_c++17 objs_c++20
 
 objs_c++17/%.o: %.cpp
-	@echo "compile for c++17: $<"
+	@echo "[$(CPP)] compile for c++17: $<"
 	@$(CPP) -std=c++17 $(CCFLAGS) -c $< -o $@
 
 objs_c++20/%.o: %.cpp
-	@echo "compile for c++20: $<"
+	@echo "[$(CPP)] compile for c++20: $<"
 	@$(CPP) -std=c++20 $(CCFLAGS) -c $< -o $@
 
 -include objs_c++17/*.d

@@ -90,11 +90,11 @@ ValueBoolParam::cases = {
         "bool", R"(true)", true, false,
         { // Plain
             {
-                {"bool_value(bool*,bool*)", "start"},
+                {"bool_value(bool*)", "start"},
                 {"value(ValuePtr,GetFn)", "start"},
 
                 {"value(ValuePtr,GetFn)", "eval_begin"},
-                {"bool_value(bool*,bool*)", "start:get_value"},
+                {"bool_value(bool*)", "start:get_value"},
                 {"value(ValuePtr,GetFn)", "eval_end"}
             }, {
             }
@@ -127,12 +127,12 @@ ValueBoolParam::cases = {
         "null", R"(null)", false, true,
         { // Plain
             {
-                {"bool_value(bool*,bool*)", "start"},
+                {"bool_value(bool*)", "start"},
                 {"value(ValuePtr,GetFn)", "start"},
 
                 {"value(ValuePtr,GetFn)", "eval_begin"},
-                {"bool_value(bool*,bool*)", "start:get_value"},
-                {"bool_value(bool*,bool*)", "error:16"},
+                {"bool_value(bool*)", "start:get_value"},
+                {"bool_value(bool*)", "error:16"},
                 {"value(ValuePtr,GetFn)", "eval_end"}
             }, {
                 { simdjson::INCORRECT_TYPE, "<root>" }
@@ -166,12 +166,12 @@ ValueBoolParam::cases = {
         "number", R"(1)", false, false,
         { // Plain
             {
-                {"bool_value(bool*,bool*)", "start"},
+                {"bool_value(bool*)", "start"},
                 {"value(ValuePtr,GetFn)", "start"},
 
                 {"value(ValuePtr,GetFn)", "eval_begin"},
-                {"bool_value(bool*,bool*)", "start:get_value"},
-                {"bool_value(bool*,bool*)", "error:16"},
+                {"bool_value(bool*)", "start:get_value"},
+                {"bool_value(bool*)", "error:16"},
                 {"value(ValuePtr,GetFn)", "eval_end"}
             }, {
                 { simdjson::INCORRECT_TYPE, "<root>" }
@@ -209,12 +209,12 @@ ValueBoolParam::cases = {
         "text", R"("true")", false, false,
         { // Plain
             {
-                {"bool_value(bool*,bool*)", "start"},
+                {"bool_value(bool*)", "start"},
                 {"value(ValuePtr,GetFn)", "start"},
 
                 {"value(ValuePtr,GetFn)", "eval_begin"},
-                {"bool_value(bool*,bool*)", "start:get_value"},
-                {"bool_value(bool*,bool*)", "error:16"},
+                {"bool_value(bool*)", "start:get_value"},
+                {"bool_value(bool*)", "error:16"},
                 {"value(ValuePtr,GetFn)", "eval_end"}
             }, {
                 { simdjson::INCORRECT_TYPE, "<root>" }
