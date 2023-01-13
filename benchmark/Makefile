@@ -36,27 +36,29 @@ SRCS = simdjson_peval_bench.cpp
 
 OBJS = $(SRCS:%.cpp=objs/%.o)
 
-TWITTER_EXAMPLE=../simdjson/jsonexamples/twitter.json
+TWITTER_EXAMPLE=$(SIMDJSONPATH)/jsonexamples/twitter.json
+AMAZON_EXAMPLE=$(SIMDJSONPATH)/jsonexamples/amazon_cellphones.ndjson
 
 EXES = runBench
 
-CCFLAGS= -Wall -O3 -MMD  \
+CCFLAGS= -Wall -ggdb -O3 -MMD  \
 	-I$(SIMDJSONPATH)/include \
 	-I$(SIMDJSON_PEVAL_PATH)/include \
 	-I$(GOOGLE_BENCH)/include \
-	-DTWITTER_EXAMPLE=\"$(TWITTER_EXAMPLE)\"
+	-DTWITTER_EXAMPLE=\"$(TWITTER_EXAMPLE)\"  \
+	-DAMAZON_EXAMPLE=\"$(AMAZON_EXAMPLE)\"
 
 LDFLAGS = \
 	-L$(GOOGLE_BENCH_BUILD)/src \
 	-L$(SIMDJSONBUILD) \
-	-lsimdjson  -lbenchmark -lpthread
+	-lsimdjson -lbenchmark -lpthread
 
 .PHONY: all third_party clean extra_clean
 
 all: third_party $(EXES)
 
 runBench: objs $(OBJS)
-	@echo "link: $@ "
+	@echo "link ($(CPP)): $@ "
 	@$(CPP) -o $@ $(OBJS) $(CCFLAGS) $(LDFLAGS)
 
 third_party: $(SIMDJSONBUILD) $(GOOGLE_BENCH_BUILD)
@@ -90,7 +92,7 @@ extra_clean: clean
 	@rm -rf objs
 
 objs/%.o: %.cpp
-	@echo "compile: $<"
+	@echo "compile ($(CPP)): $<"
 	@$(CPP) $(CCFLAGS) -c $< -o $@
 
 -include objs/*.d

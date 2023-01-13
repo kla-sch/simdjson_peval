@@ -40,6 +40,20 @@
  */
 namespace simdjson_peval {
 
+#if defined(__clang__) || defined(__GNUC__)
+#    define _SIMDJSON_PEVAL_ALWAYS_INLINE __attribute__((always_inline))
+#    if defined(__clang__)
+#        define _SIMDJSON_PEVAL_ALWAYS_INLINE_MUTABLE \
+             __attribute__((always_inline)) mutable
+#    elif defined(__GNUC__)
+#        define _SIMDJSON_PEVAL_ALWAYS_INLINE_MUTABLE \
+             mutable __attribute__((always_inline))
+#    endif
+#else
+#    define _SIMDJSON_PEVAL_ALWAYS_INLINE
+#    define _SIMDJSON_PEVAL_ALWAYS_INLINE_MUTABLE
+#endif
+
 #if _SIMDJSON_PEVAL_DO_TRACE == 1
 
 // Switch on debugging.
@@ -441,7 +455,7 @@ array(ElementFn element_fn) {
         (ArrayIter *sj_array_iter, ArrayIter *sj_array_end,
          size_t sj_array_idx,
          error *err)
-        mutable
+        _SIMDJSON_PEVAL_ALWAYS_INLINE_MUTABLE
         {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
@@ -493,7 +507,7 @@ array(ElementFn element_fn, MoreElementFn ...more_element_fn) {
         (ArrayIter *sj_array_iter, ArrayIter *sj_array_end,
          size_t sj_array_idx,
          error *err)
-        mutable
+        _SIMDJSON_PEVAL_ALWAYS_INLINE_MUTABLE
         {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
@@ -571,7 +585,9 @@ value(ValuePtr *val_ptr, GetFn get_fn) {
 
     return
         [val_ptr, get_fn]
-        (ResultType &sj_result, error *err) mutable {
+        (ResultType &sj_result, error *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE_MUTABLE
+        {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -611,7 +627,9 @@ value(ValuePtr val_ptr, GetFn get_fn, bool *is_null) {
 
     return
         [val_ptr, is_null, get_fn]
-        (ResultType &sj_result, error *err) mutable {
+        (ResultType &sj_result, error *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE_MUTABLE
+        {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -657,7 +675,9 @@ value(std::optional<Value> *opt_ptr, GetFn get_fn) {
 
     return
         [opt_ptr, get_fn]
-        (ResultType &sj_result, error *err) {
+        (ResultType &sj_result, error *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE_MUTABLE
+        {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -700,7 +720,9 @@ value(GetFn get_fn) {
 
     return
         [get_fn]
-        (ResultType &sj_result, error *err) {
+        (ResultType &sj_result, error *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE_MUTABLE
+        {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -730,7 +752,9 @@ value(simdjson::simdjson_result<simdjson::ondemand::value> *val_ptr)
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
 
     auto get_value =
-        [](auto *sj_result, auto *val_ptr, auto *err) {
+        [](auto *sj_result, auto *val_ptr, auto *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE
+        {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
             if constexpr(
                 std::is_same_v<
@@ -773,7 +797,9 @@ string_value(std::string_view *val_ptr) {
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
 
     auto get_value =
-        [](auto *sj_result, auto *val_ptr, auto *err) {
+        [](auto *sj_result, auto *val_ptr, auto *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE
+        {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
             const auto code = sj_result->value().get_string().get(*val_ptr);
             if (code) {
@@ -804,7 +830,9 @@ string_value(std::string_view *val_ptr, bool *is_null) {
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
 
     auto get_value =
-        [](auto *sj_result, auto *val_ptr, auto *err) {
+        [](auto *sj_result, auto *val_ptr, auto *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE
+        {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
             const auto code = sj_result->value().get_string().get(*val_ptr);
             if (code) {
@@ -833,7 +861,9 @@ string_value(std::optional<std::string_view> *opt_ptr) {
     _SIMDJSON_PEVAL_ASSERT(opt_ptr != nullptr);
 
     auto get_value =
-        [](auto *sj_result, auto *opt_ptr, auto *err) {
+        [](auto *sj_result, auto *opt_ptr, auto *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE
+        {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
             const auto code = sj_result->value().get_string().get(**opt_ptr);
             if (code) {
@@ -861,7 +891,9 @@ string_value(std::string *val_ptr) {
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
 
     auto get_value =
-        [](auto *sj_result, auto *val_ptr, auto *err) {
+        [](auto *sj_result, auto *val_ptr, auto *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE
+        {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
             std::string_view tmp_value;
             const auto code = sj_result->value().get_string().get(tmp_value);
@@ -895,7 +927,9 @@ string_value(std::string *val_ptr, bool *is_null) {
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
 
     auto get_value =
-        [](auto *sj_result, auto *val_ptr, auto *err) {
+        [](auto *sj_result, auto *val_ptr, auto *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE
+        {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
             std::string_view tmp_value;
             const auto code = sj_result->value().get_string().get(tmp_value);
@@ -927,7 +961,9 @@ string_value(std::optional<std::string> *opt_ptr) {
     _SIMDJSON_PEVAL_ASSERT(opt_ptr != nullptr);
 
     auto get_value =
-        [](auto *sj_result, auto *opt_ptr, auto *err) {
+        [](auto *sj_result, auto *opt_ptr, auto *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE
+        {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
             std::string_view tmp_value;
             const auto code = sj_result->value().get_string().get(tmp_value);
@@ -960,7 +996,9 @@ string_value(int64_t *val_ptr) {
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
 
     auto get_value =
-        [](auto *sj_result, auto *val_ptr, auto *err) {
+        [](auto *sj_result, auto *val_ptr, auto *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE
+        {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
             const auto code =
                 sj_result->value().get_int64_in_string().get(*val_ptr);
@@ -991,7 +1029,9 @@ string_value(int64_t *val_ptr, bool *is_null) {
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
 
     auto get_value =
-        [](auto *sj_result, auto *val_ptr, auto *err) {
+        [](auto *sj_result, auto *val_ptr, auto *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE
+        {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
             const auto code =
                 sj_result->value().get_int64_in_string().get(*val_ptr);
@@ -1020,7 +1060,9 @@ string_value(std::optional<int64_t> *opt_ptr) {
     _SIMDJSON_PEVAL_ASSERT(opt_ptr != nullptr);
 
     auto get_value =
-        [](auto *sj_result, auto *opt_ptr, auto *err) {
+        [](auto *sj_result, auto *opt_ptr, auto *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE
+        {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
             const auto code =
                 sj_result->value().get_int64_in_string().get(**opt_ptr);
@@ -1049,7 +1091,9 @@ string_value(uint64_t *val_ptr) {
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
 
     auto get_value =
-        [](auto *sj_result, auto *val_ptr, auto *err) {
+        [](auto *sj_result, auto *val_ptr, auto *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE
+        {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
             const auto code =
                 sj_result->value().get_uint64_in_string().get(*val_ptr);
@@ -1080,7 +1124,9 @@ string_value(uint64_t *val_ptr, bool *is_null) {
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
 
     auto get_value =
-        [](auto *sj_result, auto *val_ptr, auto *err) {
+        [](auto *sj_result, auto *val_ptr, auto *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE
+        {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
             const auto code =
                 sj_result->value().get_uint64_in_string().get(*val_ptr);
@@ -1109,7 +1155,9 @@ string_value(std::optional<uint64_t> *opt_ptr) {
     _SIMDJSON_PEVAL_ASSERT(opt_ptr != nullptr);
 
     auto get_value =
-        [](auto *sj_result, auto *opt_ptr, auto *err) {
+        [](auto *sj_result, auto *opt_ptr, auto *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE
+        {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
             const auto code =
                 sj_result->value().get_uint64_in_string().get(**opt_ptr);
@@ -1138,7 +1186,9 @@ string_value(double *val_ptr) {
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
 
     auto get_value =
-        [](auto *sj_result, auto *val_ptr, auto *err) {
+        [](auto *sj_result, auto *val_ptr, auto *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE
+        {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
             const auto code =
                 sj_result->value().get_double_in_string().get(*val_ptr);
@@ -1169,7 +1219,9 @@ string_value(double *val_ptr, bool *is_null) {
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
 
     auto get_value =
-        [](auto *sj_result, auto *val_ptr, auto *err) {
+        [](auto *sj_result, auto *val_ptr, auto *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE
+        {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
             const auto code =
                 sj_result->value().get_double_in_string().get(*val_ptr);
@@ -1198,7 +1250,9 @@ string_value(std::optional<double> *opt_ptr) {
     _SIMDJSON_PEVAL_ASSERT(opt_ptr != nullptr);
 
     auto get_value =
-        [](auto *sj_result, auto *opt_ptr, auto *err) {
+        [](auto *sj_result, auto *opt_ptr, auto *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE
+        {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
             const auto code =
                 sj_result->value().get_double_in_string().get(**opt_ptr);
@@ -1235,7 +1289,9 @@ number_value(int64_t *val_ptr) {
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
 
     auto get_value =
-        [](auto *sj_result, auto *val_ptr, auto *err) {
+        [](auto *sj_result, auto *val_ptr, auto *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE
+        {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
             const auto code = sj_result->value().get_int64().get(*val_ptr);
             if (code) {
@@ -1265,7 +1321,9 @@ number_value(int64_t *val_ptr, bool *is_null) {
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
 
     auto get_value =
-        [](auto *sj_result, auto *val_ptr, auto *err) {
+        [](auto *sj_result, auto *val_ptr, auto *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE
+        {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
             const auto code = sj_result->value().get_int64().get(*val_ptr);
             if (code) {
@@ -1293,7 +1351,9 @@ number_value(std::optional<int64_t> *opt_ptr) {
     _SIMDJSON_PEVAL_ASSERT(opt_ptr != nullptr);
 
     auto get_value =
-        [](auto *sj_result, auto *opt_ptr, auto *err) {
+        [](auto *sj_result, auto *opt_ptr, auto *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE
+        {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
             const auto code = sj_result->value().get_int64().get(**opt_ptr);
             if (code) {
@@ -1321,7 +1381,9 @@ number_value(uint64_t *val_ptr) {
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
 
     auto get_value =
-        [](auto *sj_result, auto *val_ptr, auto *err) {
+        [](auto *sj_result, auto *val_ptr, auto *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE
+        {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
             const auto code = sj_result->value().get_uint64().get(*val_ptr);
             if (code) {
@@ -1351,7 +1413,9 @@ number_value(uint64_t *val_ptr, bool *is_null) {
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
 
     auto get_value =
-        [](auto *sj_result, auto *val_ptr, auto *err) {
+        [](auto *sj_result, auto *val_ptr, auto *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE
+        {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
             const auto code = sj_result->value().get_uint64().get(*val_ptr);
             if (code) {
@@ -1379,7 +1443,9 @@ number_value(std::optional<uint64_t> *opt_ptr) {
     _SIMDJSON_PEVAL_ASSERT(opt_ptr != nullptr);
 
     auto get_value =
-        [](auto *sj_result, auto *opt_ptr, auto *err) {
+        [](auto *sj_result, auto *opt_ptr, auto *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE
+        {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
             const auto code = sj_result->value().get_uint64().get(**opt_ptr);
             if (code) {
@@ -1407,7 +1473,9 @@ number_value(double *val_ptr) {
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
 
     auto get_value =
-        [](auto *sj_result, auto *val_ptr, auto *err) {
+        [](auto *sj_result, auto *val_ptr, auto *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE
+        {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
             const auto code = sj_result->value().get_double().get(*val_ptr);
             if (code) {
@@ -1437,7 +1505,9 @@ number_value(double *val_ptr, bool *is_null) {
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
 
     auto get_value =
-        [](auto *sj_result, auto *val_ptr, auto *err) {
+        [](auto *sj_result, auto *val_ptr, auto *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE
+        {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
             const auto code = sj_result->value().get_double().get(*val_ptr);
             if (code) {
@@ -1465,7 +1535,9 @@ number_value(std::optional<double> *opt_ptr) {
     _SIMDJSON_PEVAL_ASSERT(opt_ptr != nullptr);
 
     auto get_value =
-        [](auto *sj_result, auto *opt_ptr, auto *err) {
+        [](auto *sj_result, auto *opt_ptr, auto *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE
+        {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
             const auto code = sj_result->value().get_double().get(**opt_ptr);
             if (code) {
@@ -1500,7 +1572,9 @@ bool_value(bool *val_ptr) {
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
 
     auto get_value =
-        [](auto *sj_result, auto *val_ptr, auto *err) {
+        [](auto *sj_result, auto *val_ptr, auto *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE
+        {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
             const auto code = sj_result->value().get_bool().get(*val_ptr);
             if (code) {
@@ -1530,7 +1604,9 @@ bool_value(bool *val_ptr, bool *is_null) {
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
 
     auto get_value =
-        [](auto *sj_result, auto *val_ptr, auto *err) {
+        [](auto *sj_result, auto *val_ptr, auto *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE
+        {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
             const auto code = sj_result->value().get_bool().get(*val_ptr);
             if (code) {
@@ -1558,7 +1634,9 @@ bool_value(std::optional<bool> *opt_ptr) {
     _SIMDJSON_PEVAL_ASSERT(opt_ptr != nullptr);
 
     auto get_value =
-        [](auto *sj_result, auto *opt_ptr, auto *err) {
+        [](auto *sj_result, auto *opt_ptr, auto *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE
+        {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
             auto code = sj_result->value().get_bool().get(**opt_ptr);
             if (code) {
@@ -1609,7 +1687,9 @@ object_to_function(OutFn out_fn)
 
     return
         [out_fn]
-        (ResultType &sj_result, error *err) mutable {
+        (ResultType &sj_result, error *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE_MUTABLE
+        {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -1693,7 +1773,9 @@ object_to_function(bool *is_null, OutFn out_fn)
 
     return
         [is_null, call_fn]
-        (ResultType &sj_result, error *err) mutable {
+        (ResultType &sj_result, error *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE_MUTABLE
+        {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -1751,7 +1833,7 @@ object_to_function(
         object_to_function<SJValue>(
             [out_fn, temp_pair_ptr, value_fn]
             (std::string_view name, SJValueType *sj_result, error *err)
-            mutable
+            _SIMDJSON_PEVAL_ALWAYS_INLINE_MUTABLE
             {
                 _SIMDJSON_PEVAL_TRACE("start_gen_out_fn");
                 _SIMDJSON_PEVAL_ASSERT(err != nullptr);
@@ -1766,7 +1848,8 @@ object_to_function(
 
     return
         [gen_out_fn]
-        (ResultType &sj_result, error *err) mutable
+        (ResultType &sj_result, error *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE_MUTABLE
         {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
@@ -1823,7 +1906,8 @@ object_to_function(
 
     return
         [is_null, call_fn]
-        (ResultType &sj_result, error *err) mutable
+        (ResultType &sj_result, error *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE_MUTABLE
         {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
@@ -1876,7 +1960,9 @@ object_to_out_iter(
 
     auto out_fn =
         [out_iter]
-        (auto *pair_ptr, error *err) mutable {
+        (auto *pair_ptr, error *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE_MUTABLE
+        {
             *out_iter = std::move(*pair_ptr);
             ++out_iter;
         };
@@ -1886,7 +1972,8 @@ object_to_out_iter(
 
     return
         [save_fn]
-        (ResultType &sj_result, error *err) mutable
+        (ResultType &sj_result, error *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE_MUTABLE
         {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
@@ -1940,7 +2027,8 @@ object_to_out_iter(
 
     return
         [is_null, save_fn]
-        (ResultType &sj_result, error *err) mutable
+        (ResultType &sj_result, error *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE_MUTABLE
         {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
@@ -1976,7 +2064,9 @@ object(MemberFn member_fn) {
 
     return
         [member_fn]
-        (ResultType &sj_result, error *err) mutable {
+        (ResultType &sj_result, error *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE_MUTABLE
+        {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -2029,7 +2119,9 @@ object(MemberFn member_fn,  MoreMemberFn ...more_member_fn) {
 
     return
         [member_fn, eval_more_fn]
-        (ResultType &sj_result, error *err) mutable {
+        (ResultType &sj_result, error *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE_MUTABLE
+        {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -2081,7 +2173,9 @@ object(bool *is_null, AllMemberFn ...all_member_fn) {
 
     return
         [is_null, eval_all_fn]
-        (ResultType &sj_result, error *err) mutable {
+        (ResultType &sj_result, error *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE_MUTABLE
+        {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -2124,7 +2218,9 @@ object(simdjson::simdjson_result<simdjson::ondemand::object> *val_ptr)
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
 
     auto get_value =
-        [](auto *sj_result, auto *val_ptr, auto *err) {
+        [](auto *sj_result, auto *val_ptr, auto *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE
+        {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
 
             if constexpr(std::is_same_v<decltype(*sj_result), SJObjectType&>) {
@@ -2172,7 +2268,9 @@ object(
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
 
     auto get_value =
-        [](auto *sj_result, auto *val_ptr, auto *err) {
+        [](auto *sj_result, auto *val_ptr, auto *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE
+        {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
 
             if constexpr(std::is_same_v<decltype(*sj_result), SJObjectType&>) {
@@ -2217,7 +2315,9 @@ member(std::string_view name, ValueFn value_fn)
 
     return
         [name, value_fn]
-        (ResultType &sj_result, error *err) mutable {
+        (ResultType &sj_result, error *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE_MUTABLE
+        {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -2262,7 +2362,7 @@ member(std::string_view name, ValueFn value_fn, bool *is_undefined)
     return
         [name, value_fn, is_undefined]
         (ResultType &sj_result, error *err)
-        mutable
+        _SIMDJSON_PEVAL_ALWAYS_INLINE_MUTABLE
         {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
@@ -2329,7 +2429,9 @@ discriminator(
 
     return
         [use_members_fn, eval_all_fn]
-        (ResultType &sj_result, error *err) mutable {
+        (ResultType &sj_result, error *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE_MUTABLE
+        {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             if (use_members_fn(&sj_result, err)) {
                 _SIMDJSON_PEVAL_TRACE("use_members");
@@ -2381,7 +2483,9 @@ array_to_function(OutFn out_fn)
 
     return
         [out_fn]
-        (ResultType &sj_result, error *err) mutable {
+        (ResultType &sj_result, error *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE_MUTABLE
+        {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -2450,7 +2554,9 @@ array_to_function(bool *is_null, OutFn out_fn)
 
     return
         [is_null, call_fn]
-        (ResultType &sj_result, error *err) mutable {
+        (ResultType &sj_result, error *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE_MUTABLE
+        {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -2506,7 +2612,9 @@ array_to_function(
     auto gen_out_fn =
         array_to_function<SJValue>(
             [out_fn, temp_value_ptr, value_fn]
-            (size_t idx, SJValueType *sj_result, error *err) mutable {
+            (size_t idx, SJValueType *sj_result, error *err)
+            _SIMDJSON_PEVAL_ALWAYS_INLINE_MUTABLE
+            {
                 _SIMDJSON_PEVAL_TRACE("start_gen_out_fn");
                 _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -2518,7 +2626,9 @@ array_to_function(
 
     return
         [gen_out_fn]
-        (ResultType &sj_result, error *err) mutable {
+        (ResultType &sj_result, error *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE_MUTABLE
+        {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -2572,7 +2682,8 @@ array_to_function(
 
     return
         [is_null, call_fn]
-        (ResultType &sj_result, error *err) mutable
+        (ResultType &sj_result, error *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE_MUTABLE
         {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
@@ -2623,7 +2734,9 @@ array_to_out_iter(
 
     auto out_fn =
         [out_iter]
-        (auto idx, auto *value_ptr, error *err) mutable {
+        (auto idx, auto *value_ptr, error *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE_MUTABLE
+        {
             *out_iter = std::move(*value_ptr);
             ++out_iter;
         };
@@ -2633,7 +2746,9 @@ array_to_out_iter(
 
     return
         [save_fn]
-        (ResultType &sj_result, error *err) mutable {
+        (ResultType &sj_result, error *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE_MUTABLE
+        {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -2684,7 +2799,9 @@ array_to_out_iter(
 
     return
         [is_null, save_fn]
-        (ResultType &sj_result, error *err) mutable {
+        (ResultType &sj_result, error *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE_MUTABLE
+        {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -2722,7 +2839,9 @@ array(AllElementFn ...all_element_fn) {
 
     return
         [eval_all_fn]
-        (ResultType &sj_result, error *err) mutable {
+        (ResultType &sj_result, error *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE_MUTABLE
+        {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -2776,7 +2895,9 @@ array(bool *is_null, AllElementFn ...all_element_fn) {
 
     return
         [is_null, eval_all_fn]
-        (ResultType &sj_result, error *err) mutable {
+        (ResultType &sj_result, error *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE_MUTABLE
+        {
             _SIMDJSON_PEVAL_TRACE_EVAL_BEGIN();
             _SIMDJSON_PEVAL_ASSERT(err != nullptr);
 
@@ -2819,7 +2940,9 @@ array(simdjson::simdjson_result<simdjson::ondemand::array> *val_ptr)
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
 
     auto get_value =
-        [](auto *sj_result, auto *val_ptr, auto *err) mutable {
+        [](auto *sj_result, auto *val_ptr, auto *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE
+        {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
             if constexpr(std::is_same_v<decltype(*sj_result), JSArrayValue&>) {
                 _SIMDJSON_PEVAL_TRACE("type:array");
@@ -2866,7 +2989,9 @@ array(
     _SIMDJSON_PEVAL_ASSERT(val_ptr != nullptr);
 
     auto get_value =
-        [](auto *sj_result, auto *val_ptr, auto *err) mutable {
+        [](auto *sj_result, auto *val_ptr, auto *err)
+        _SIMDJSON_PEVAL_ALWAYS_INLINE
+        {
             _SIMDJSON_PEVAL_TRACE("start:get_value");
             if constexpr(std::is_same_v<decltype(*sj_result), JSArrayValue&>) {
                 _SIMDJSON_PEVAL_TRACE("type:array");

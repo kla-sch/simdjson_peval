@@ -94,38 +94,91 @@ folder `doc`.
 
 ## Performance
 
-I just made a test with the example file `twitter.json` from the
-`simdjson` project. Once the data is evaluated straight forward with
-the `simdjson` methods and once with the prototypes.
-
-Results vary by compiler.
-
-**clang version 11.0.1**:
-```
-----------------------------------------------------------------------
-Benchmark                            Time             CPU   Iterations
-----------------------------------------------------------------------
-twitter_file_peval_proto        165033 ns       165025 ns         4196
-twitter_file_raw                155859 ns       155850 ns         4584
-```
-
-**gcc version 10.2.1**
-```
-----------------------------------------------------------------------
-Benchmark                            Time             CPU   Iterations
-----------------------------------------------------------------------
-twitter_file_peval_proto        163140 ns       163134 ns         4448
-twitter_file_raw                173362 ns       173355 ns         4079
-```
-
-The Clang result seems reasonable. An abstraction always costs some
-performance. In this case, the evaluation takes about 6% longer.
-
-But I don't understand why the GCC seems to be faster with the
-prototype than when evaluating the JSON straight forward.
+I made three different tests. The performance is almost the same as
+equaivalent implemented straight forward implementations.
 
 Further performance tests are necessary in order to get a final
 picture here.
+
+### Twitter example
+
+Test use the example file `twitter.json` from the `simdjson`
+project. Once the data is evaluated straight forward with the
+`simdjson` methods and once with the prototypes.
+
+**clang version 11.0.1**:
+```
+---------------------------------------------------------------------------
+Benchmark                                 Time             CPU   Iterations
+---------------------------------------------------------------------------
+twitter_file_peval_local_median      155214 ns       155208 ns           10
+twitter_file_raw_median              150163 ns       150155 ns           10
+```
+Result: 3.6% performance loss
+
+**gcc version 10.2.1**
+```
+---------------------------------------------------------------------------
+Benchmark                                 Time             CPU   Iterations
+---------------------------------------------------------------------------
+twitter_file_peval_local_median      144205 ns       143815 ns           10
+twitter_file_raw_median              168965 ns       168542 ns           10
+```
+Result: 14.7% performance gain
+
+
+### Cellphone example
+
+Test use the example file `amazon_cellphones.ndjson` from the
+`simdjson` project. Once the data is evaluated straight forward with
+the `simdjson` methods and once with the prototypes.
+
+**clang version 11.0.1**:
+```
+-----------------------------------------------------------------------------
+Benchmark                                   Time             CPU   Iterations
+-----------------------------------------------------------------------------
+cellphone_file_peval_local_median      285019 ns       284761 ns           10
+cellphone_file_raw_median              278128 ns       278114 ns           10
+```
+Result: 2.5% performance loss
+
+**gcc version 10.2.1**
+```
+-----------------------------------------------------------------------------
+Benchmark                                   Time             CPU   Iterations
+-----------------------------------------------------------------------------
+cellphone_file_peval_local_median      273892 ns       273874 ns           10
+cellphone_file_raw_median              249466 ns       249450 ns           10
+```
+Result: 8.9% performance gain
+
+### Iterate throw map elements
+
+Parse an object with a numerous number of members with
+numbers. Iterates throw the object members. Once the data is evaluated
+straight forward with the `simdjson` methods and once with the
+prototypes.
+
+**clang version 11.0.1**:
+```
+-----------------------------------------------------------------------------
+Benchmark                                   Time             CPU   Iterations
+-----------------------------------------------------------------------------
+map_data_peval_local/65536_median     1027787 ns      1027711 ns           10
+map_data_raw/65536_median             1155857 ns      1154326 ns           10
+```
+Result: 11.1% performance gain
+
+**gcc version 10.2.1**
+```
+-----------------------------------------------------------------------------
+Benchmark                                   Time             CPU   Iterations
+-----------------------------------------------------------------------------
+map_data_peval_local/65536_median     1043462 ns      1037913 ns           10
+map_data_raw/65536_median             1081108 ns      1081030 ns           10
+```
+Result: 3.6% performance gain
 
 ## TODO for v1.0
 
